@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Itens - FireRed</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>💊 Guia de Itens (FireRed)</h1>
+        
+        <div class="nav-bar">
+            <a href="index.html">🚪 Voltar à Seleção</a>
+            <a href="pokemon.html">🔍 Buscar Pokémon</a>
+            <a href="tms.html">💾 Guia de TMs</a>
+            <a href="hms.html">🔗 Guia de HMs</a>
+        </div>
+        
+        <div class="item-search-container">
+            <input type="text" id="itensSearchInput" 
+                   placeholder="Filtrar por nome do Item, Efeito ou Localização" 
+                   onkeyup="filterGuide('itens')" 
+                   style="width: 100%;">
+        </div>
+
+        <div id="versionGuideContent" class="item-list-results">
+            <p>Carregando Itens...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarGuiaVersao('itens'); 
+        });
+    </script>
+</body>
+</html>

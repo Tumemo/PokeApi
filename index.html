@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex Guia - Seleção de Versão</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ Guia de Batalha Pokémon</h1>
+        <h2>Selecione sua Versão de Jogo</h2>
+        
+        <div id="versionSelection" style="margin-bottom: 30px;">
+            <select id="gameVersionSelect" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #94a3b8; background-color: #334155; color: #f8fafc;">
+                <option value="firered" selected>FireRed / LeafGreen (Kanto)</option>
+                <option value="emerald" disabled>Emerald (Hoenn) - Em Desenvolvimento</option>
+            </select>
+            <button onclick="iniciarGuia()">Entrar no Guia</button>
+        </div>
+    </div>
+
+    <script>
+        // Função para ser chamada no HTML
+        function iniciarGuia() {
+            const selectedVersion = document.getElementById('gameVersionSelect').value;
+            if (selectedVersion === 'firered') {
+                localStorage.setItem('currentGameVersion', 'firered');
+                window.location.href = 'pokemon.html';
+            } else {
+                alert("Esta versão está em desenvolvimento.");
+            }
+        }
+    </script>
+</body>
+</html>

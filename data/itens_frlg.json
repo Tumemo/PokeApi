@@ -1,0 +1,12 @@
+[
+    {"id": 1, "name": "Master Ball", "effect": "Pokébola que captura qualquer Pokémon sem falhar.", "location": "Silph Co. (Presidente)"},
+    {"id": 2, "name": "Rare Candy", "effect": "Aumenta o nível de um Pokémon em 1.", "location": "Vários locais (Ex: Cerulean Cave, Rota 23, Rota 13)"},
+    {"id": 3, "name": "Escape Rope", "effect": "Fuga instantânea de cavernas ou da Torre Pokémon.", "location": "Comprado em Marts (Ex: Cerulean City)"},
+    {"id": 4, "name": "Repel Max", "effect": "Repele Pokémons selvagens por 250 passos.", "location": "Comprado em Marts (Ex: Celadon City)"},
+    {"id": 5, "name": "Evolução: Fire Stone", "effect": "Evolui Vulpix, Growlithe e Eevee.", "location": "Celadon Department Store (4º andar)"},
+    {"id": 6, "name": "Evolução: Water Stone", "effect": "Evolui Poliwhirl, Shellder e Eevee.", "location": "Celadon Department Store (4º andar)"},
+    {"id": 7, "name": "Evolução: Thunder Stone", "effect": "Evolui Pikachu e Eevee.", "location": "Celadon Department Store (4º andar)"},
+    {"id": 8, "name": "Chave: Lift Key", "effect": "Abre o elevador na Silph Co.", "location": "Silph Co. (Rival)"},
+    {"id": 9, "name": "Chave: Tea", "effect": "Permite acesso a Saffron City.", "location": "Sra. Old (Mansion em Celadon City)"},
+    {"id": 10, "name": "Upgrade", "effect": "Evolui Porygon para Porygon2 (Troca com Item).", "location": "Trainer Tower (Ilha 7 - Troca de Pontos)"}
+]

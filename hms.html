@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de HMs - FireRed</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Guia de HMs (FireRed)</h1>
+        
+        <div class="nav-bar">
+            <a href="index.html">🚪 Voltar à Seleção</a>
+            <a href="pokemon.html">🔍 Buscar Pokémon</a>
+            <a href="itens.html">💊 Guia de Itens</a>
+            <a href="tms.html">💾 Guia de TMs</a>
+        </div>
+        
+        <div class="item-search-container">
+            <input type="text" id="hmsSearchInput" 
+                   placeholder="Filtrar por nome do HM, Movimento ou Localização" 
+                   onkeyup="filterGuide('hms')" 
+                   style="width: 100%;">
+        </div>
+
+        <div id="versionGuideContent" class="item-list-results">
+            <p>Carregando HMs...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Chama a função de filtro na carga inicial
+            carregarGuiaVersao('hms'); 
+        });
+    </script>
+</body>
+</html>

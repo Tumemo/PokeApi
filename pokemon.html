@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex - Busca</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ Guia de Batalha Pokémon</h1>
+        
+        <div class="nav-bar">
+            <a href="index.html">🚪 Voltar à Seleção</a>
+            <a href="itens.html">💊 Guia de Itens</a>
+            <a href="tms.html">💾 Guia de TMs</a>
+            <a href="hms.html">🔗 Guia de HMs</a>
+        </div>
+
+        <p class="generations-info">
+            <strong>Guia Ativo:</strong> FireRed / LeafGreen (Geração 1)
+        </p>
+
+        <div class="search-container">
+            <div class="search-controls">
+                <input type="text" id="pokemonInput" 
+                       placeholder="Digite o Nome ou ID do Pokémon" 
+                       onkeyup="handleInput(event)" 
+                       autocomplete="off">
+                <div class="buttons-container">
+                    <button onclick="buscarPokemon()">Buscar</button>
+                    <button onclick="limparBusca()" class="clear-button">Limpar</button>
+                </div>
+            </div>
+            <div id="suggestions" class="suggestions-list hidden"></div>
+        </div>
+
+        <div id="pokemonInfo" class="pokemon-card">
+            <p>Use o campo acima para buscar um Pokémon.</p>
+        </div>
+
+        <div id="baseStats" class="guide-section hidden">
+            <h3>📈 Stats Base</h3>
+        </div>
+
+        <div id="typeGuide" class="guide-section hidden">
+        </div>
+
+        <div id="movesGuide" class="guide-section hidden">
+            <h3>🥋 Movimentos Aprendidos (FireRed)</h3>
+        </div>
+        
+        <div id="evolutionChain" class="guide-section hidden">
+            <h3>🌱 Cadeia Evolutiva</h3>
+        </div>
+
+        <div id="strategyGuide" class="guide-section hidden">
+            <h3>🗺️ Localização (FireRed)</h3>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Não precisamos de scripts inline extras aqui, pois as funções
+        // já são expostas no script.js.
+    </script>
+</body>
+</html>

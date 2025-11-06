@@ -1,0 +1,51 @@
+[
+  {
+    "id": 1,
+    "name": "HM01",
+    "move": "cut",
+    "effect": "Corta pequenas árvores fora de batalha.",
+    "location": "Vermilion City – S.S. Anne (Captain)"
+  },
+  {
+    "id": 2,
+    "name": "HM02",
+    "move": "fly",
+    "effect": "Permite voar para cidades visitadas.",
+    "location": "Rota 16 – Entregue por uma garota na casa"
+  },
+  {
+    "id": 3,
+    "name": "HM03",
+    "move": "surf",
+    "effect": "Permite atravessar água.",
+    "location": "Safari Zone – Seção final"
+  },
+  {
+    "id": 4,
+    "name": "HM04",
+    "move": "strength",
+    "effect": "Move grandes pedras.",
+    "location": "Fuchsia City – Casa do Warden (após devolver os dentes de ouro)"
+  },
+  {
+    "id": 5,
+    "name": "HM05",
+    "move": "flash",
+    "effect": "Ilumina cavernas escuras.",
+    "location": "Route 2 – Obtido de um aide do Professor Oak"
+  },
+  {
+    "id": 6,
+    "name": "HM06",
+    "move": "rock-smash",
+    "effect": "Destrói pequenas rochas quebráveis no caminho. Poder base: 20.",
+    "location": "Ember Spa (One Island)"
+  },
+  {
+    "id": 7,
+    "name": "HM07",
+    "move": "waterfall",
+    "effect": "Permite subir cachoeiras fora de batalha. Poder base: 80.",
+    "location": "Icefall Cave (Four Island)"
+  }
+]
