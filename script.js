@@ -29,6 +29,7 @@ async function loadData() {
 
 async function loadPokemonNames() {
     try {
+        // Limitado a 251 para incluir a Geração 2, que pode ser usada em evoluções futuras
         const response = await fetch(`${POKEAPI_URL}?limit=251`); 
         const data = await response.json();
         pokemonNames = data.results.map(p => p.name);
@@ -38,10 +39,8 @@ async function loadPokemonNames() {
 }
 
 async function loadGuideData() {
-    // FUNÇÃO AUXILIAR PARA TRATAR O FETCH E ERROS DE ARQUIVO
     const fetchData = async (path) => {
         try {
-            // USANDO CAMINHO RELATIVO DIRETO, CONFORME A ESTRUTURA DE PASTAS
             const response = await fetch(path); 
             if (!response.ok) {
                 throw new Error(`Falha no HTTP: Status ${response.status}`);
@@ -54,7 +53,6 @@ async function loadGuideData() {
     };
 
     try {
-        // Correção: Usando caminhos relativos 'data/...'
         const [tms, hms, itens] = await Promise.all([
             fetchData('data/tms_frlg.json'),
             fetchData('data/hms_frlg.json'),
@@ -181,7 +179,7 @@ async function buscarPokemon() {
     }
 }
 
-// --- Funções de Exibição de Conteúdo ---
+// --- Funções de Exibição de Conteúdo (Sem Alterações) ---
 
 function exibirPokemon(data, targetElement, tipos) {
     const nome = data.name;
@@ -268,69 +266,64 @@ function exibirBaseStats(statsData, targetElement) {
 }
 
 // ==========================================================
-// 3. FUNÇÕES DE EVOLUÇÃO 
+// 3. FUNÇÕES DE EVOLUÇÃO (CORRIGIDAS)
 // ==========================================================
 
 function getEvolutionDetailsString(detail) {
     const trigger = detail.trigger.name.replace(/-/g, ' ');
     let details = trigger.charAt(0).toUpperCase() + trigger.slice(1);
 
-    if (trigger === 'level-up') {
-        if (detail.min_level) {
-            details = `LV ${detail.min_level}`;
-        } else if (detail.min_happiness) {
-            details = `Felicidade ${detail.min_happiness}+`;
+    // 1. Prioridade: Se houver NÍVEL MÍNIMO, é o que deve ser exibido.
+    if (detail.min_level) {
+        // Envolve o nível em <strong> para destacar e facilitar a leitura.
+        details = `LV <strong>${detail.min_level}</strong>`;
+    } 
+    // 2. Se o gatilho é Level-Up mas não tem nível (geralmente Felicidade/Stats)
+    else if (trigger === 'level-up') {
+         if (detail.min_happiness) {
+            details = `Felicidade <strong>${detail.min_happiness}+</strong>`;
         } else if (detail.time_of_day) {
-            details = `Nível (Horário: ${detail.time_of_day})`;
+            details = `Level Up (Horário: ${detail.time_of_day})`;
         } else {
-            details = `Level Up (Sem Nível Específico)`; 
+            // Level Up genérico (para evoluções como Feebas que requerem Beauty, ou outras condições)
+            details = `Level Up (Condição)`; 
         }
-    } else if (trigger === 'trade') {
+    } 
+    // 3. Outros Gatilhos (Trade, Use-Item)
+    else if (trigger === 'trade') {
         details = 'Troca';
-        if (detail.held_item) {
-            details += ` (segurando ${detail.held_item.name.replace('-', ' ')})`;
-        }
-    } else if (trigger === 'use item' && detail.item) {
-        details = `Usando ${detail.item.name.replace('-', ' ')}`;
+    } else if (trigger === 'use-item' && detail.item) {
+        details = `Usando ${detail.item.name.replace(/-/g, ' ')}`;
     }
     
-    return details;
-}
+    // --- Adiciona detalhes extras (Item, Gênero, Movimento) ---
+    let extraDetails = [];
 
-function parseChain(currentEvo, allEvolutions) {
-    const name = currentEvo.species.name;
-    
-    const currentId = parseInt(currentEvo.species.url.split('/').slice(-2, -1)[0]);
-    if (currentId > FIRST_GEN_LIMIT) {
-        return;
+    // Held Item em Trade ou Level Up
+    if (detail.held_item) { 
+        extraDetails.push(`Segurando ${detail.held_item.name.replace('-', ' ')}`);
     }
 
-    if (!allEvolutions[name]) {
-        allEvolutions[name] = { 
-            name: name,
-            evolutionsTo: []
-        };
+    if (detail.gender !== null) {
+        extraDetails.push(detail.gender === 1 ? '♀ Fêmea' : '♂ Macho');
+    }
+    if (detail.known_move) {
+         extraDetails.push(`Movimento: ${detail.known_move.name.replace('-', ' ')}`);
     }
 
-    currentEvo.evolves_to.forEach(nextEvo => {
-        const nextName = nextEvo.species.name;
-        
-        const nextId = parseInt(nextEvo.species.url.split('/').slice(-2, -1)[0]);
-        if (nextId > FIRST_GEN_LIMIT) {
-             return; 
+    // Se houver detalhes extras, adiciona-os ao final
+    if (extraDetails.length > 0) {
+        // Verifica se 'details' já é "LV <strong>XX</strong>"
+        if (details.includes('<strong>') || details.includes('Troca')) {
+            details += ` + (${extraDetails.join(', ')})`;
+        } else {
+             // Caso não seja nível (Ex: Troca), envolve os detalhes em parênteses.
+             details += ` (${extraDetails.join(', ')})`;
         }
-
-        const detailsList = nextEvo.evolution_details.map(getEvolutionDetailsString);
-        
-        allEvolutions[name].evolutionsTo.push({
-            to: nextName,
-            details: detailsList
-        });
-
-        parseChain(nextEvo, allEvolutions); 
-    });
+    }
+    
+    return details.replace(/\s+/g, ' '); // Remove espaços extras
 }
-
 
 async function buscarCadeiaEvolutiva(speciesData, targetElement) {
     const chainUrl = speciesData.evolution_chain.url;
@@ -338,73 +331,68 @@ async function buscarCadeiaEvolutiva(speciesData, targetElement) {
     const chainData = await chainResponse.json();
 
     const chain = chainData.chain;
-    const allEvolutions = {};
-    
-    parseChain(chain, allEvolutions);
     
     let html = '<h3>🧬 Cadeia Evolutiva (Apenas Kanto)</h3>';
     
-    const imageCache = {}; 
-
-    const getPokemonImage = async (name) => {
-        if (!imageCache[name]) {
-            const response = await fetch(`${POKEAPI_URL}${name}`);
-            const data = await response.json();
-            imageCache[name] = data.sprites.front_default;
-        }
-        return imageCache[name];
-    };
-
-
-    const basePokemon = allEvolutions[chain.species.name]; 
+    // Apenas renderiza se o Pokémon base estiver na Geração 1
+    const currentId = parseInt(chain.species.url.split('/').slice(-2, -1)[0]);
     
-    if (!basePokemon) {
-        const imageUrl = await getPokemonImage(speciesData.name);
-        html = `
-            <div class="evolution-list-container" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-                <div class="evolution-step" style="align-self: center;">
-                    <img src="${imageUrl}" alt="${speciesData.name}" style="width: 96px; height: 96px; border: 2px solid #8b5cf6;" />
-                    <p style="margin: 5px 0;"><strong>${speciesData.name.toUpperCase()}</strong></p>
-                </div>
-                <p style="text-align: center; margin-top: 10px; color: #94a3b8;">Este Pokémon não evolui em Kanto (ou é o estágio final).</p>
-            </div>
-        `;
-
-    } else {
-        html += await renderEvolutionChain(basePokemon, speciesData.name, allEvolutions, getPokemonImage);
+    if (currentId > FIRST_GEN_LIMIT) {
+         html += `<p style="text-align: center; margin-top: 10px; color: #94a3b8;">Pokémon não pertence à Geração 1 (Kanto).</p>`;
+         targetElement.innerHTML = html;
+         targetElement.classList.remove('hidden');
+         return;
     }
+
+    html += await renderEvolutionChain(chain, speciesData.name);
     
     targetElement.innerHTML = html;
     targetElement.classList.remove('hidden');
 }
 
 
-async function renderEvolutionChain(startPokemon, currentSearchName, allEvolutions, getPokemonImage) {
-    
+async function renderEvolutionChain(chainData, currentSearchName) {
     let html = '<div class="evolution-list-container" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 10px;">';
     
-    let currentPokemonName = startPokemon.name;
-    let currentEvoDetails = null; 
-
-    // --- LOOP PARA CADEIAS LINEARES E RAMIFICADAS ---
-    while (currentPokemonName) {
-        const current = allEvolutions[currentPokemonName];
-
-        if (!current) break; 
+    let currentChain = chainData;
+    const imageCache = {};
+    
+    const getPokemonImage = async (name) => {
+        if (!imageCache[name]) {
+            const response = await fetch(`${POKEAPI_URL}${name}`);
+            if (!response.ok) return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
+            const data = await response.json();
+            imageCache[name] = data.sprites.front_default;
+        }
+        return imageCache[name];
+    };
+    
+    // Loop para percorrer a cadeia
+    while (currentChain) {
+        const currentPokemonName = currentChain.species.name;
+        const currentPokemonId = currentChain.species.url.split('/').slice(-2, -1)[0];
         
-        // 1. LÓGICA DE RENDERIZAÇÃO DE DETALHES (Seta + LV XX)
-        const isBaseStage = currentPokemonName === startPokemon.name;
-        
-        if (!isBaseStage && currentEvoDetails && currentEvoDetails.length > 0) {
-            const detailsString = currentEvoDetails.join(' OU ');
-             html += `
-                <div class="evolution-details" style="text-align: center; margin: 0 15px; display: flex; flex-direction: column; justify-content: center; align-self: center;">
+        // Verifica se está na Geração 1
+        if (parseInt(currentPokemonId) > FIRST_GEN_LIMIT) {
+            currentChain = null; // Encerra o loop se sair da Geração 1
+            break;
+        }
+
+        // 1. Adicionar DETALHES do estágio ANTERIOR (se não for o estágio base)
+        if (currentChain.evolution_details && currentChain.evolution_details.length > 0) {
+            
+            // Mapeia todos os detalhes possíveis para esta evolução (pode haver mais de um, por exemplo, nível ou pedra)
+            const detailsList = currentChain.evolution_details.map(getEvolutionDetailsString);
+            const detailsString = detailsList.join(' OU ');
+
+            html += `
+                <div class="evolution-details-text" style="text-align: center; margin: 0 15px; display: flex; flex-direction: column; justify-content: center; align-self: center;">
                     <p style="color: #94a3b8; font-size: 0.9em; margin: 0; font-weight: bold;">${detailsString}</p>
                     <span style="font-size: 1.5em; color: #8b5cf6;">▶</span>
                 </div>
             `;
         }
-        
+
         // 2. RENDERIZA O POKÉMON ATUAL
         const imageUrl = await getPokemonImage(currentPokemonName);
         html += `
@@ -414,14 +402,13 @@ async function renderEvolutionChain(startPokemon, currentSearchName, allEvolutio
             </div>
         `;
         
-
-        if (current.evolutionsTo.length === 0) {
-            currentPokemonName = null; 
-            break; 
-        }
-
-        // 3. Lida com Evolução Ramificada (Ex: Eevee)
-        if (current.evolutionsTo.length > 1) {
+        
+        // 3. Lógica para a próxima etapa (Ponto Crítico)
+        if (currentChain.evolves_to.length === 1) {
+            // Cadeia Linear - Avança para o próximo
+            currentChain = currentChain.evolves_to[0];
+        } else if (currentChain.evolves_to.length > 1) {
+            // Cadeia Ramificada (Ex: Eevee)
             
             html += `<div class="ramification-details" style="text-align: center; margin: 0 15px; display: flex; flex-direction: column; justify-content: center; align-self: center; width: 100%;">
                  <p style="color: #94a3b8; font-size: 0.9em; margin: 10px 0; font-weight: bold;">EVOLUÇÕES RAMIFICADAS (VEJA ABAIXO)</p>
@@ -429,33 +416,33 @@ async function renderEvolutionChain(startPokemon, currentSearchName, allEvolutio
 
             html += `<div class="ramification-row" style="display: flex; flex-wrap: wrap; justify-content: center; width: 100%; border-top: 1px dashed #e2e8f0; padding-top: 10px;">`;
             
-            for (const nextEvo of current.evolutionsTo) {
-                 const detailsString = nextEvo.details.join(' OU ');
-                 const nextImageUrl = await getPokemonImage(nextEvo.to);
+            for (const nextEvo of currentChain.evolves_to) {
+                   const nextId = parseInt(nextEvo.species.url.split('/').slice(-2, -1)[0]);
+                   if (nextId > FIRST_GEN_LIMIT) continue; // Pula se estiver fora de Kanto
+                   
+                   const detailsList = nextEvo.evolution_details.map(getEvolutionDetailsString);
+                   const detailsString = detailsList.join(' OU ');
+                   const nextImageUrl = await getPokemonImage(nextEvo.species.name);
 
-                 html += `
-                     <div style="display: flex; flex-direction: column; align-items: center; margin: 10px 20px;">
-                         <div style="text-align: center; margin-bottom: 5px;">
-                             <p style="color: #94a3b8; font-size: 0.9em; font-weight: bold; max-width: 120px; line-height: 1.2;">(${detailsString})</p>
-                             <span style="font-size: 1.5em; color: #8b5cf6;">⬇️</span>
-                         </div>
-                         <div class="evolution-step">
-                             <img src="${nextImageUrl}" alt="${nextEvo.to}" style="width: 96px; height: 96px;" />
-                             <p style="margin: 3px 0; font-size: 1em;"><strong>${nextEvo.to.toUpperCase()}</strong></p>
-                         </div>
-                     </div>
-                 `;
+                   html += `
+                       <div style="display: flex; flex-direction: column; align-items: center; margin: 10px 20px;">
+                           <div style="text-align: center; margin-bottom: 5px; min-height: 50px;">
+                               <p style="color: #94a3b8; font-size: 0.9em; font-weight: bold; max-width: 120px; line-height: 1.2;">${detailsString}</p>
+                               <span style="font-size: 1.5em; color: #8b5cf6;">⬇️</span>
+                           </div>
+                           <div class="evolution-step">
+                               <img src="${nextImageUrl}" alt="${nextEvo.species.name}" style="width: 96px; height: 96px;" />
+                               <p style="margin: 3px 0; font-size: 1em;"><strong>${nextEvo.species.name.toUpperCase()}</strong></p>
+                           </div>
+                       </div>
+                   `;
             }
             html += `</div>`; 
 
-            currentPokemonName = null; 
+            currentChain = null; // Termina o loop após ramificação
             
-        } else if (current.evolutionsTo.length === 1) {
-            // 4. Lida com Evolução Linear (Prepara a próxima iteração)
-            const nextEvo = current.evolutionsTo[0];
-
-            currentPokemonName = nextEvo.to;
-            currentEvoDetails = nextEvo.details;
+        } else {
+             currentChain = null; // Fim da cadeia
         }
     }
 
@@ -464,14 +451,14 @@ async function renderEvolutionChain(startPokemon, currentSearchName, allEvolutio
     return html;
 }
 
+
 // ==========================================================
-// 4. GUIAS (Tabela de Vantagens/Desvantagens, Localização, Movimentos)
+// 4. GUIAS (Tabela de Vantagens/Desvantagens, Localização, Movimentos) - Sem Alterações
 // ==========================================================
 
 async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
     if (tipos.length === 0) return;
 
-    // Define os multiplicadores de dano
     const DAMAGE_MULTIPLIERS = {
         'double_damage_from': 2,
         'half_damage_from': 0.5,
@@ -493,7 +480,6 @@ async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
     };
 
 
-    // 1. Processamento de DEFESA (DANO RECEBIDO)
     let tempDefenseRelations = { 'double_damage_from': {}, 'half_damage_from': {}, 'no_damage_from': {} };
 
     for (const tipo of tipos) {
@@ -532,28 +518,23 @@ async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
         else if (factor === 0) defenseRelations['0x'].types.push(tag);
     }
     
-    // 2. Processamento de ATAQUE (DANO CAUSADO)
     for (const tipo of tipos) {
         const response = await fetch(`${POKEAPI_TYPE_URL}${tipo}`);
         const data = await response.json();
         
-        // Dano Duplo (2x) é o que ele CAUSA
         data.damage_relations.double_damage_to.forEach(typeInfo => {
             attackRelations['2x'].types.push(typeInfo.name);
         });
         
-        // Dano Metade (0.5x) é o que ele CAUSA
         data.damage_relations.half_damage_to.forEach(typeInfo => {
             attackRelations['0.5x'].types.push(typeInfo.name);
         });
 
-        // Dano Nulo (0x) é o que ele CAUSA
         data.damage_relations.no_damage_to.forEach(typeInfo => {
             attackRelations['0x'].types.push(typeInfo.name);
         });
     }
 
-    // Remove duplicatas 
     const uniqueAttackRelations = {};
     for (const key in attackRelations) {
         const uniqueTypes = [...new Set(attackRelations[key].types)];
@@ -561,12 +542,9 @@ async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
     }
 
 
-    // 3. Monta o HTML FINAL
-
     let html = '<h3>⚔️ Tabela de Vantagens e Desvantagens</h3>';
     html += '<p style="font-style: italic; color: #94a3b8;">* A eficácia é calculada com base no(s) tipo(s) do Pokémon pesquisado.</p>';
 
-    // --- SEÇÃO DE DEFESA (DANO RECEBIDO) ---
     html += '<div style="background: #0f172a; padding: 15px; border-radius: 8px; margin-top: 20px;">';
     html += '<h4>⬇️ DANO RECEBIDO (DEFESA)</h4>';
     html += '<p>O multiplicador de dano que <strong>este Pokémon sofre</strong>.</p>';
@@ -590,7 +568,6 @@ async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
     }
     html += '</div>'; 
 
-    // --- SEÇÃO DE ATAQUE (DANO CAUSADO) ---
     html += '<div style="background: #0f172a; padding: 15px; border-radius: 8px; margin-top: 20px;">';
     html += '<h4>⬆️ DANO CAUSADO (ATAQUE)</h4>';
     html += '<p>O dano que <strong>este Pokémon causa</strong> (com movimentos do seu próprio tipo).</p>';
@@ -723,8 +700,6 @@ function exibirMovimentos(movesData, targetElement) {
 }
 
 
-// --- Lógica de Guias de Versão (TM/HM/Itens) ---
-
 function carregarGuiaVersao(type) {
     if (FIRERED_GUIDE_DATA[type] === undefined) {
         document.getElementById('versionGuideContent').innerHTML = '<p style="color: #e76f51;">Erro: Dados não carregados. Verifique o console para a falha do JSON.</p>';
@@ -752,43 +727,36 @@ function filterGuide(type) {
         return itemString.includes(filterText);
     });
 
-    // Inicia o contêiner principal para o layout em grid
     let html = `<h3>${title}</h3><div class="card-grid">`; 
 
     if (filteredList.length > 0) {
         filteredList.forEach(item => {
             
             let typeClass = '';
-            // VERIFICA SE É TM/HM E PEGA O TIPO PARA COLORIR O TÍTULO
+            
             if (type === 'tms' || type === 'hms') {
-                // Assume que o item.type existe e está em minúsculas (ex: 'fire', 'water')
                 typeClass = `type-${item.type ? item.type.toLowerCase() : 'normal'}`; 
             }
 
             html += `<div class="guide-card">`; 
             
            if (type === 'tms' || type === 'hms') {
-    // Mostra o nome formatado (ex: TM01 - FOCUS PUNCH / HM03 - SURF)
-    const code = item.code ? item.code.toUpperCase() : (type === 'tms' ? 'TM' : 'HM');
-    const moveName = item.move ? item.move.replace(/-/g, ' ').toUpperCase() : '—';
-    
-    // Título do card (sem cor de tipo)
-    html += `<h4 class="card-title">${code} - ${moveName}</h4>`;
-    
-    // Corpo do card
-    html += `<p class="card-move"><strong>Movimento:</strong> <span style="color: #8b5cf6;">${moveName}</span></p>`;
-    
-    if (type === 'tms') {
-        html += `<p><strong>Tipo:</strong> <span class="type-tag type-${item.type?.toLowerCase() || 'normal'}">${item.type?.toUpperCase() || 'NORMAL'}</span> | <strong>Poder:</strong> ${item.power || 'Status'}</p>`;
-    }
+             const code = item.code ? item.code.toUpperCase() : (type === 'tms' ? 'TM' : 'HM');
+             const moveName = item.move ? item.move.replace(/-/g, ' ').toUpperCase() : '—';
+             
+             html += `<h4 class="card-title">${code} - ${moveName}</h4>`;
+             
+             html += `<p class="card-move"><strong>Movimento:</strong> <span style="color: #8b5cf6;">${moveName}</span></p>`;
+             
+             if (type === 'tms') {
+                 html += `<p><strong>Tipo:</strong> <span class="type-tag type-${item.type?.toLowerCase() || 'normal'}">${item.type?.toUpperCase() || 'NORMAL'}</span> | <strong>Poder:</strong> ${item.power || 'Status'}</p>`;
+             }
 
-    html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
-}
- else { 
-                // Itens Chave não têm tipo
-                // Usa a cor padrão para itens
-                html += `<h4 class="card-title">${item.name.toUpperCase()}</h4>`;
-                html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
+             html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
+         }
+         else { 
+               html += `<h4 class="card-title">${item.name.toUpperCase()}</h4>`;
+               html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
             }
             
             html += `<p class="card-location"><strong>Localização:</strong> ${item.location}</p>`;
@@ -798,14 +766,13 @@ function filterGuide(type) {
         html += `<p style="color: #94a3b8; width: 100%; text-align: center;">Nenhum ${title} encontrado com o filtro "${filterText}".</p>`;
     }
 
-    // Fecha o contêiner principal do grid
     html += `</div>`; 
     
     targetElement.innerHTML = html;
 }
 
 // ==========================================================
-// 5. EXPOSIÇÃO GLOBAL
+// 5. EXPOSIÇÃO GLOBAL (Sem Alterações)
 // ==========================================================
 
 window.buscarPokemon = buscarPokemon;
