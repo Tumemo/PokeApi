@@ -10,17 +10,26 @@ let pokemonNames = [];
 let FIRERED_GUIDE_DATA = {};
 
 // ==========================================================
-// 1. CARREGAMENTO E DADOS INICIAIS (COM CORREÇÃO DE CAMINHO ABSOLUTO)
+// 1. CARREGAMENTO E DADOS INICIAIS (USANDO CAMINHO RELATIVO 'data/')
 // ==========================================================
 
 async function loadData() {
     await loadPokemonNames();
     await loadGuideData();
+    // Adiciona uma chamada para carregar o guia se a URL for específica (tms.html, hms.html, itens.html)
+    const urlPath = window.location.pathname;
+    if (urlPath.includes('tms.html')) {
+        carregarGuiaVersao('tms');
+    } else if (urlPath.includes('hms.html')) {
+        carregarGuiaVersao('hms');
+    } else if (urlPath.includes('itens.html')) {
+        carregarGuiaVersao('itens');
+    }
 }
 
 async function loadPokemonNames() {
     try {
-        const response = await fetch(`${POKEAPI_URL}?limit=251`); // Carrega Kanto e Johto para sugestões
+        const response = await fetch(`${POKEAPI_URL}?limit=251`); 
         const data = await response.json();
         pokemonNames = data.results.map(p => p.name);
     } catch (error) {
@@ -32,27 +41,24 @@ async function loadGuideData() {
     // FUNÇÃO AUXILIAR PARA TRATAR O FETCH E ERROS DE ARQUIVO
     const fetchData = async (path) => {
         try {
-            // Tenta carregar usando o caminho absoluto (/data/...). 
-            // O Live Server deve resolver isso.
+            // USANDO CAMINHO RELATIVO DIRETO, CONFORME A ESTRUTURA DE PASTAS
             const response = await fetch(path); 
             if (!response.ok) {
-                // Lança um erro se a resposta HTTP não for OK (ex: 404 Not Found)
                 throw new Error(`Falha no HTTP: Status ${response.status}`);
             }
             return response.json();
         } catch (error) {
-            // Re-lança o erro com o caminho para o Promise.all() pegar
             console.error(`Detalhes da falha ao carregar ${path}:`, error);
             throw new Error(`Falha ao carregar ${path}`); 
         }
     };
 
     try {
-        // Correção: Usando caminhos absolutos para a pasta /data/
+        // Correção: Usando caminhos relativos 'data/...'
         const [tms, hms, itens] = await Promise.all([
-            fetchData('/data/tms_frlg.json'),
-            fetchData('/data/hms_frlg.json'),
-            fetchData('/data/itens_frlg.json')
+            fetchData('data/tms_frlg.json'),
+            fetchData('data/hms_frlg.json'),
+            fetchData('data/itens_frlg.json')
         ]);
         
         FIRERED_GUIDE_DATA = { tms, hms, itens };
@@ -262,7 +268,7 @@ function exibirBaseStats(statsData, targetElement) {
 }
 
 // ==========================================================
-// 3. FUNÇÕES DE EVOLUÇÃO (Com correção do LV XX)
+// 3. FUNÇÕES DE EVOLUÇÃO 
 // ==========================================================
 
 function getEvolutionDetailsString(detail) {
@@ -380,7 +386,7 @@ async function renderEvolutionChain(startPokemon, currentSearchName, allEvolutio
     let currentPokemonName = startPokemon.name;
     let currentEvoDetails = null; 
 
-    // --- LOOP PARA CADEIAS LINEARES E RAMIFICADAS (Corrigido) ---
+    // --- LOOP PARA CADEIAS LINEARES E RAMIFICADAS ---
     while (currentPokemonName) {
         const current = allEvolutions[currentPokemonName];
 
@@ -720,8 +726,8 @@ function exibirMovimentos(movesData, targetElement) {
 // --- Lógica de Guias de Versão (TM/HM/Itens) ---
 
 function carregarGuiaVersao(type) {
-    if (!FIRERED_GUIDE_DATA[type]) {
-        document.getElementById('versionGuideContent').innerHTML = '<p style="color: #e76f51;">Erro: Dados não carregados.</p>';
+    if (FIRERED_GUIDE_DATA[type] === undefined) {
+        document.getElementById('versionGuideContent').innerHTML = '<p style="color: #e76f51;">Erro: Dados não carregados. Verifique o console para a falha do JSON.</p>';
         return;
     }
     
@@ -731,7 +737,8 @@ function carregarGuiaVersao(type) {
 function filterGuide(type) {
     const targetElement = document.getElementById('versionGuideContent');
     const searchInput = document.getElementById(`${type}SearchInput`);
-    const filterText = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    const filterText = searchInput ? searchInput.value.toLowerCase() : ''; 
 
     const dataList = FIRERED_GUIDE_DATA[type] || [];
     let title = '';
@@ -745,35 +752,55 @@ function filterGuide(type) {
         return itemString.includes(filterText);
     });
 
-    let html = '';
+    // Inicia o contêiner principal para o layout em grid
+    let html = `<h3>${title}</h3><div class="card-grid">`; 
 
     if (filteredList.length > 0) {
         filteredList.forEach(item => {
-            html += `<div class="item-card">`;
             
+            let typeClass = '';
+            // VERIFICA SE É TM/HM E PEGA O TIPO PARA COLORIR O TÍTULO
             if (type === 'tms' || type === 'hms') {
-                html += `<strong>${item.name.toUpperCase()}</strong>`;
-                html += `<p><strong>Movimento:</strong> ${item.move.replace(/-/g, ' ').toUpperCase()}</p>`;
-                
-                if (type === 'tms') {
-                    html += `<p><strong>Tipo:</strong> ${item.type} | <strong>Poder:</strong> ${item.power || 'Status'}</p>`;
-                    html += `<p><strong>Efeito:</strong> ${item.effect}</p>`;
-                } else {
-                    html += `<p><strong>Efeito:</strong> ${item.effect}</p>`;
-                }
+                // Assume que o item.type existe e está em minúsculas (ex: 'fire', 'water')
+                typeClass = `type-${item.type ? item.type.toLowerCase() : 'normal'}`; 
+            }
 
-            } else { 
-                html += `<strong>${item.name.toUpperCase()}</strong>`;
-                html += `<p><strong>Efeito:</strong> ${item.effect}</p>`;
+            html += `<div class="guide-card">`; 
+            
+           if (type === 'tms' || type === 'hms') {
+    // Mostra o nome formatado (ex: TM01 - FOCUS PUNCH / HM03 - SURF)
+    const code = item.code ? item.code.toUpperCase() : (type === 'tms' ? 'TM' : 'HM');
+    const moveName = item.move ? item.move.replace(/-/g, ' ').toUpperCase() : '—';
+    
+    // Título do card (sem cor de tipo)
+    html += `<h4 class="card-title">${code} - ${moveName}</h4>`;
+    
+    // Corpo do card
+    html += `<p class="card-move"><strong>Movimento:</strong> <span style="color: #8b5cf6;">${moveName}</span></p>`;
+    
+    if (type === 'tms') {
+        html += `<p><strong>Tipo:</strong> <span class="type-tag type-${item.type?.toLowerCase() || 'normal'}">${item.type?.toUpperCase() || 'NORMAL'}</span> | <strong>Poder:</strong> ${item.power || 'Status'}</p>`;
+    }
+
+    html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
+}
+ else { 
+                // Itens Chave não têm tipo
+                // Usa a cor padrão para itens
+                html += `<h4 class="card-title">${item.name.toUpperCase()}</h4>`;
+                html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
             }
             
-            html += `<p><strong>Localização:</strong> ${item.location}</p>`;
+            html += `<p class="card-location"><strong>Localização:</strong> ${item.location}</p>`;
             html += `</div>`;
         });
     } else {
-        html += `<p style="color: #94a3b8;">Nenhum ${title} encontrado com o filtro "${filterText}".</p>`;
+        html += `<p style="color: #94a3b8; width: 100%; text-align: center;">Nenhum ${title} encontrado com o filtro "${filterText}".</p>`;
     }
 
+    // Fecha o contêiner principal do grid
+    html += `</div>`; 
+    
     targetElement.innerHTML = html;
 }
 
@@ -782,7 +809,7 @@ function filterGuide(type) {
 // ==========================================================
 
 window.buscarPokemon = buscarPokemon;
-window.limparBusca = limparBusca; // CORRIGIDO: de 'limparBuspa' para 'limparBusca'
+window.limparBusca = limparBusca; 
 window.handleInput = handleInput; 
 window.mostrarSugestoes = mostrarSugestoes;
 window.carregarGuiaVersao = carregarGuiaVersao;

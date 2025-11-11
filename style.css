@@ -1,9 +1,15 @@
 /* Paleta de Cores Frias (Azul Escuro/Roxo)
-   Fundo: #0f172a (Azul Escuro Profundo)
-   Principal: #f8fafc (Branco/Quase branco)
-   Secundário: #94a3b8 (Azul Acinzentado)
-   Destaque/Botão: #8b5cf6 (Roxo Vibrante)
+    Fundo: #0f172a (Azul Escuro Profundo)
+    Fundo Container: #1e293b (Azul Escuro um pouco mais claro)
+    Principal: #f8fafc (Branco/Quase branco)
+    Secundário: #94a3b8 (Azul Acinzentado)
+    Destaque/Botão/Links: #8b5cf6 (Roxo Vibrante)
+    Fundo Card: #334155 (Azul/Cinza - Cor Clara dos Cards)
 */
+
+/* ============================================== */
+/* ESTILOS GERAIS E LAYOUT BASE */
+/* ============================================== */
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,12 +24,12 @@ body {
 }
 
 .container {
-    background: #1e293b; /* Azul Escuro um pouco mais claro */
+    background: #1e293b; /* Fundo do Conteúdo Principal */
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     text-align: center;
-    max-width: 800px;
+    max-width: 1200px; 
     width: 100%;
 }
 
@@ -41,13 +47,15 @@ h2, h3, h4 {
     margin-top: 0;
 }
 
-/* --- Navegação e Controles --- */
+/* ============================================== */
+/* NAVEGAÇÃO (NAVBAR) */
+/* ============================================== */
 .nav-bar {
     display: flex;
     justify-content: space-around;
     padding: 15px 0;
     margin-bottom: 30px;
-    background-color: #334155;
+    background-color: #334155; /* Cor do nav-bar */
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
@@ -71,6 +79,10 @@ h2, h3, h4 {
     background-color: #7c3aed;
 }
 
+/* ============================================== */
+/* BUSCA E INPUTS */
+/* ============================================== */
+
 .search-container {
     position: relative;
     margin-bottom: 30px;
@@ -79,8 +91,10 @@ h2, h3, h4 {
 .search-controls {
     display: flex;
     gap: 10px;
+    align-items: center; 
 }
 
+/* Estilo para todos os campos de input de texto */
 #pokemonInput, #itemSearchInput, #tmSearchInput, #hmSearchInput {
     flex-grow: 1;
     padding: 12px;
@@ -88,8 +102,15 @@ h2, h3, h4 {
     border-radius: 8px;
     box-sizing: border-box;
     font-size: 1em;
-    background-color: #334155;
+    background-color: #334155; /* Fundo do input */
     color: #f8fafc;
+    margin: 0; 
+}
+
+#pokemonInput:focus, #itemSearchInput:focus, #tmSearchInput:focus, #hmSearchInput:focus {
+    border-color: #8b5cf6;
+    outline: none;
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.5);
 }
 
 .buttons-container {
@@ -104,6 +125,7 @@ h2, h3, h4 {
     background-color: #7d8b9f;
 }
 
+/* Sugestões (autocomplete) */
 .suggestions-list {
     position: absolute;
     top: 100%;
@@ -130,7 +152,10 @@ h2, h3, h4 {
     background-color: #8b5cf6;
 }
 
-/* --- Card do Pokémon --- */
+/* ============================================== */
+/* CARDS DE CONTEÚDO E GUIAS */
+/* ============================================== */
+
 .pokemon-card {
     margin-top: 15px;
     border-radius: 10px;
@@ -163,7 +188,6 @@ h2, h3, h4 {
     text-shadow: 1px 1px 3px #111;
 }
 
-/* --- Guias de Seção --- */
 .guide-section {
     margin-top: 30px;
     border-top: 3px solid #8b5cf6;
@@ -182,7 +206,6 @@ h2, h3, h4 {
     padding-bottom: 5px;
 }
 
-/* CORREÇÃO: Texto em Negrito com cor */
 .guide-section strong, .item-card strong, .stats-table strong {
     color: #f8fafc; 
     font-weight: bold;
@@ -191,7 +214,88 @@ h2, h3, h4 {
     color: #8b5cf6;
 }
 
-/* --- Stats Base (Gráficos) --- */
+/* ============================================== */
+/* GUIAS DE TMs/HMs/ITENS (Cards mais claros e espaçamento) */
+/* ============================================== */
+
+.card-grid {
+    display: grid;
+    /* 3 colunas em telas grandes */
+    grid-template-columns: repeat(3, 1fr); 
+    /* Espaçamento entre os cards (Vertical e Horizontal) */
+    gap: 50px; 
+    padding: 15px 0;
+}
+
+.guide-card {
+    background-color: #334155; /* Fundo do Card (Cor mais clara) */
+    border: 1px solid #475569;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
+    transition: transform 0.2s, border-color 0.2s; 
+    display: flex; 
+    flex-direction: column;
+    text-align: left;
+    height: 100%; 
+}
+
+.guide-card:hover {
+    transform: translateY(-3px); 
+    border-color: #8b5cf6;
+}
+
+.card-title {
+    /* Cor padrão para títulos de itens (fallback) */
+    color: #f8fafc; 
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed #475569;
+    padding-bottom: 5px;
+    font-weight: bold;
+    /* CORREÇÃO: Garante que não haja fundo extra de cor de tipo */
+    background: none; 
+}
+
+/* Cores dos Títulos de TM/HM baseadas no tipo (Estas regras definem a cor do TEXTO) */
+.card-title.type-normal { color: #A8A878; }
+.card-title.type-fire { color: #F08030; }
+.card-title.type-water { color: #6890F0; }
+.card-title.type-grass { color: #78C850; }
+.card-title.type-electric { color: #F8D030; }
+.card-title.type-ice { color: #98D8D8; }
+.card-title.type-fighting { color: #C03028; }
+.card-title.type-poison { color: #A040A0; }
+.card-title.type-ground { color: #E0C068; }
+.card-title.type-flying { color: #A890F0; }
+.card-title.type-psychic { color: #F85888; }
+.card-title.type-bug { color: #A8B820; }
+.card-title.type-rock { color: #B8A038; }
+.card-title.type-ghost { color: #705898; }
+.card-title.type-dragon { color: #7038F8; }
+.card-title.type-steel { color: #B8B8D0; }
+.card-title.type-dark { color: #705848; }
+.card-title.type-fairy { color: #EE99AC; }
+
+
+.card-location {
+    font-style: italic;
+    color: #94a3b8; 
+    margin-top: auto; 
+    padding-top: 10px;
+    font-size: 0.9em;
+}
+
+.card-move strong, .card-effect strong {
+    color: #f8fafc; 
+}
+
+
+/* ============================================== */
+/* STATS BASE E GRÁFICOS */
+/* ============================================== */
+
 .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 .stats-table th, .stats-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #334155; }
 .stats-table th { background-color: #334155; font-weight: bold; color: #f8fafc; width: 30%; }
@@ -207,7 +311,10 @@ h2, h3, h4 {
 .speed-bar { background-color: #FFEB3B; }
 .total-stat-row td { border-top: 2px solid #8b5cf6; font-weight: bold; background-color: #334155; }
 
-/* --- Evolução --- */
+/* ============================================== */
+/* EVOLUÇÃO */
+/* ============================================== */
+
 .evolution-list {
     display: flex;
     flex-wrap: wrap;
@@ -221,26 +328,38 @@ h2, h3, h4 {
     border-radius: 4px;
 }
 
-/* --- TMs/HMs/Itens --- */
-.item-card {
-    border: 1px solid #475569;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    background-color: #334155;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-.item-card strong {
-    color: #8b5cf6;
-    display: block;
-    margin-bottom: 5px;
-    font-size: 1.1em;
-}
+/* ============================================== */
+/* TAGS DE TIPO */
+/* ============================================== */
 
-.item-search-container { margin-bottom: 20px; }
-.item-list-results { max-height: 600px; overflow-y: auto; padding-right: 10px; }
-
-/* --- Tipos (Mantidos) --- */
 .type-tag { display: inline-block; padding: 5px 10px; margin: 4px; border-radius: 5px; color: white; font-weight: bold; text-transform: uppercase; font-size: 0.85em; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
 .type-normal { background-color: #A8A878; } .type-fire { background-color: #F08030; } .type-water { background-color: #6890F0; } .type-grass { background-color: #78C850; } .type-electric { background-color: #F8D030; } .type-ice { background-color: #98D8D8; } .type-fighting { background-color: #C03028; } .type-poison { background-color: #A040A0; } .type-ground { background-color: #E0C068; } .type-flying { background-color: #A890F0; } .type-psychic { background-color: #F85888; } .type-bug { background-color: #A8B820; } .type-rock { background-color: #B8A038; } .type-ghost { background-color: #705898; } .type-dragon { background-color: #7038F8; } .type-steel { background-color: #B8B8D0; } .type-dark { background-color: #705848; } .type-fairy { background-color: #EE99AC; }
 .hidden { display: none !important; }
+
+
+/* ============================================== */
+/* RESPONSIVIDADE */
+/* ============================================== */
+@media (max-width: 1024px) {
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px; 
+    }
+}
+
+@media (max-width: 768px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+        gap: 15px; 
+    }
+    .search-controls {
+        flex-direction: column;
+    }
+    .buttons-container {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .buttons-container button {
+        flex-grow: 1;
+    }
+}
