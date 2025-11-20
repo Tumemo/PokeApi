@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Evolução Pokémon | PokéAPI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            color: #cc0000; /* Cor Vermelha Pokémon */
+            text-align: center;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+        #search-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #pokemon-input {
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            width: 300px;
+        }
+        #search-button {
+            padding: 10px 20px;
+            background-color: #3b4cca; /* Cor Azul Pokémon */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #search-button:hover {
+            background-color: #002d8e;
+        }
+        #results-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .pokemon-name {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #3b4cca;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #ffde00; /* Cor Amarela Pokémon */
+            color: #333;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #loading, #error-message {
+            text-align: center;
+            font-size: 1.2em;
+            color: #cc0000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📚 Guia de Evolução Pokémon</h1>
+    
+    <div id="search-container">
+        <input type="text" id="pokemon-input" placeholder="Digite o nome do Pokémon (ex: bulbasaur)" value="bulbasaur">
+        <button id="search-button" onclick="getEvolutionChain()">Buscar Evolução</button>
+    </div>
+
+    <div id="loading">Carregando dados da PokéAPI...</div>
+    <div id="error-message">Pokémon não encontrado ou erro na busca. Tente um nome válido.</div>
+
+    <div id="results-container">
+        <p class="pokemon-name">Digite o nome de um Pokémon e clique em Buscar!</p>
+    </div>
+
+    <script>
+        const API_BASE = 'https://pokeapi.co/api/v2/';
+        const resultsContainer = document.getElementById('results-container');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error-message');
+
+        /**
+         * Formata o nome do Pokémon (primeira letra maiúscula).
+         * @param {string} name 
+         */
+        function formatName(name) {
+            return name.charAt(0).toUpperCase() + name.slice(1);
+        }
+
+        /**
+         * Processa a condição de evolução e retorna uma string legível.
+         * @param {object} details - Objeto evolution_details da API.
+         */
+        function parseEvolutionDetails(details) {
+            const trigger = details.trigger.name;
+            let condition = 'Desconhecida';
+
+            switch (trigger) {
+                case 'level-up':
+                    if (details.min_level) {
+                        condition = `Sobe de Nível (Nível ${details.min_level})`;
+                    } else if (details.min_happiness !== null) {
+                        condition = `Sobe de Nível (Alta Felicidade)`;
+                    } else if (details.min_beauty !== null) {
+                        condition = `Sobe de Nível (Alta Beleza)`;
+                    } else if (details.min_level === null && details.held_item) {
+                        condition = `Sobe de Nível segurando ${formatName(details.held_item.name)}`;
+                    } else if (details.time_of_day) {
+                        condition = `Sobe de Nível (${details.time_of_day === 'day' ? 'Dia' : 'Noite'})`;
+                    }
+                    break;
+                case 'use-item':
+                    condition = `Uso de Pedra/Item: ${formatName(details.item.name).replace('-stone', ' Stone')}`;
+                    break;
+                case 'trade':
+                    if (details.held_item) {
+                        condition = `Troca segurando ${formatName(details.held_item.name)}`;
+                    } else {
+                        condition = `Troca`;
+                    }
+                    break;
+                default:
+                    condition = formatName(trigger).replace('-', ' ');
+                    break;
+            }
+
+            return condition;
+        }
+
+        /**
+         * Função principal para buscar a cadeia evolutiva.
+         */
+        async function getEvolutionChain() {
+            const pokemonName = document.getElementById('pokemon-input').value.toLowerCase().trim();
+            if (!pokemonName) return;
+
+            // Limpar e mostrar loading
+            resultsContainer.innerHTML = '';
+            errorDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+
+            try {
+                // 1. Obter a URL da Cadeia Evolutiva (Evolution Chain)
+                const speciesResponse = await fetch(`${API_BASE}pokemon-species/${pokemonName}`);
+                if (!speciesResponse.ok) {
+                    throw new Error('Pokémon não encontrado.');
+                }
+                const speciesData = await speciesResponse.json();
+                const evolutionChainUrl = speciesData.evolution_chain.url;
+
+                // 2. Obter os Dados da Cadeia Evolutiva
+                const chainResponse = await fetch(evolutionChainUrl);
+                const chainData = await chainResponse.json();
+
+                // 3. Processar e Exibir a Cadeia
+                const evolutionData = processChain(chainData.chain);
+                displayEvolutionChain(evolutionData);
+
+            } catch (error) {
+                console.error("Erro ao buscar a cadeia evolutiva:", error);
+                errorDiv.style.display = 'block';
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        /**
+         * Percorre a estrutura em árvore da API e extrai os dados.
+         * @param {object} chain - O objeto chain da resposta da API.
+         * @param {Array} result - Array acumulador para a cadeia.
+         */
+        function processChain(chain, result = []) {
+            const currentSpeciesName = chain.species.name;
+
+            chain.evolves_to.forEach(evolution => {
+                const details = evolution.evolution_details[0]; // Pegamos o primeiro detalhe
+                const nextSpeciesName = evolution.species.name;
+                
+                result.push({
+                    from: formatName(currentSpeciesName),
+                    to: formatName(nextSpeciesName),
+                    condition: parseEvolutionDetails(details)
+                });
+
+                // Chamada recursiva para a próxima etapa da evolução
+                processChain(evolution, result);
+            });
+
+            return result;
+        }
+
+        /**
+         * Gera a estrutura HTML da tabela.
+         * @param {Array} evolutionData - Dados da cadeia de evolução processados.
+         */
+        function displayEvolutionChain(evolutionData) {
+            if (evolutionData.length === 0) {
+                resultsContainer.innerHTML = `<p class="pokemon-name">Este Pokémon não tem evoluções, ou é o último estágio de sua cadeia.</p>`;
+                return;
+            }
+
+            // Descobre o Pokémon inicial
+            const initialPokemon = evolutionData.length > 0 ? evolutionData[0].from : '';
+            
+            let htmlContent = `<div class="pokemon-name">Cadeia Evolutiva de ${initialPokemon}</div>`;
+            htmlContent += `<table>`;
+            htmlContent += `<tr><th>De</th><th>Para</th><th>Como Evolui</th></tr>`;
+
+            evolutionData.forEach(evo => {
+                htmlContent += `
+                    <tr>
+                        <td>${evo.from}</td>
+                        <td><strong>${evo.to}</strong></td>
+                        <td>${evo.condition}</td>
+                    </tr>
+                `;
+            });
+
+            htmlContent += `</table>`;
+            resultsContainer.innerHTML = htmlContent;
+        }
+
+        // Carregar um exemplo ao abrir a página
+        document.addEventListener('DOMContentLoaded', () => {
+             getEvolutionChain(); // Carrega Bulbasaur como padrão
+        });
+    </script>
+</body>
+</html>

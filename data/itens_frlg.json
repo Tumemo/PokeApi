@@ -1,12 +1,961 @@
 [
-    {"id": 1, "name": "Master Ball", "effect": "Pokébola que captura qualquer Pokémon sem falhar.", "location": "Silph Co. (Presidente)"},
-    {"id": 2, "name": "Rare Candy", "effect": "Aumenta o nível de um Pokémon em 1.", "location": "Vários locais (Ex: Cerulean Cave, Rota 23, Rota 13)"},
-    {"id": 3, "name": "Escape Rope", "effect": "Fuga instantânea de cavernas ou da Torre Pokémon.", "location": "Comprado em Marts (Ex: Cerulean City)"},
-    {"id": 4, "name": "Repel Max", "effect": "Repele Pokémons selvagens por 250 passos.", "location": "Comprado em Marts (Ex: Celadon City)"},
-    {"id": 5, "name": "Evolução: Fire Stone", "effect": "Evolui Vulpix, Growlithe e Eevee.", "location": "Celadon Department Store (4º andar)"},
-    {"id": 6, "name": "Evolução: Water Stone", "effect": "Evolui Poliwhirl, Shellder e Eevee.", "location": "Celadon Department Store (4º andar)"},
-    {"id": 7, "name": "Evolução: Thunder Stone", "effect": "Evolui Pikachu e Eevee.", "location": "Celadon Department Store (4º andar)"},
-    {"id": 8, "name": "Chave: Lift Key", "effect": "Abre o elevador na Silph Co.", "location": "Silph Co. (Rival)"},
-    {"id": 9, "name": "Chave: Tea", "effect": "Permite acesso a Saffron City.", "location": "Sra. Old (Mansion em Celadon City)"},
-    {"id": 10, "name": "Upgrade", "effect": "Evolui Porygon para Porygon2 (Troca com Item).", "location": "Trainer Tower (Ilha 7 - Troca de Pontos)"}
+  {
+    "id": 1,
+    "name": "Master Ball",
+    "type": "Pokébola",
+    "effect": "Pokébola que captura qualquer Pokémon selvagem sem falhar.",
+    "location": "Silph Co. (Presidente)"
+  },
+  {
+    "id": 2,
+    "name": "Ultra Ball",
+    "type": "Pokébola",
+    "effect": "Pokébola de alta performance, melhor que a Great Ball.",
+    "location": "Comprada em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 3,
+    "name": "Great Ball",
+    "type": "Pokébola",
+    "effect": "Pokébola de bom desempenho, melhor que a Poké Ball.",
+    "location": "Comprada em Marts (Ex: Lavender Town), Vários locais"
+  },
+  {
+    "id": 4,
+    "name": "Poké Ball",
+    "type": "Pokébola",
+    "effect": "Pokébola básica para capturar Pokémons selvagens.",
+    "location": "Comprada em Marts (Ex: Viridian City), Vários locais"
+  },
+  {
+    "id": 5,
+    "name": "Safari Ball",
+    "type": "Pokébola",
+    "effect": "Usada apenas na Safari Zone (Zona de Safari).",
+    "location": "Safari Zone"
+  },
+  {
+    "id": 6,
+    "name": "Net Ball",
+    "type": "Pokébola",
+    "effect": "Funciona melhor em Pokémons do tipo ÁGUA ou INSETO.",
+    "location": "Marts nas ilhas (Ex: Six Island)"
+  },
+  {
+    "id": 7,
+    "name": "Dive Ball",
+    "type": "Pokébola",
+    "effect": "Funciona melhor em Pokémons encontrados debaixo d'água.",
+    "location": "Marts nas ilhas (Ex: Six Island)"
+  },
+  {
+    "id": 8,
+    "name": "Nest Ball",
+    "type": "Pokébola",
+    "effect": "Funciona melhor em Pokémons de nível baixo.",
+    "location": "Marts nas ilhas (Ex: Six Island)"
+  },
+  {
+    "id": 9,
+    "name": "Repeat Ball",
+    "type": "Pokébola",
+    "effect": "Funciona melhor em Pokémons que já foram capturados.",
+    "location": "Marts nas ilhas (Ex: Six Island)"
+  },
+  {
+    "id": 10,
+    "name": "Timer Ball",
+    "type": "Pokébola",
+    "effect": "Funciona melhor quanto mais longas forem as batalhas.",
+    "location": "Marts nas ilhas (Ex: Six Island)"
+  },
+  {
+    "id": 11,
+    "name": "Premier Ball",
+    "type": "Pokébola",
+    "effect": "Pokébola rara feita para comemorar algum evento.",
+    "location": "Recebida ao comprar 10 Poké Balls de uma vez"
+  },
+  {
+    "id": 12,
+    "name": "Luxury Ball",
+    "type": "Pokébola",
+    "effect": "Faz o Pokémon capturado se tornar mais amigável.",
+    "location": "Marts nas ilhas (Ex: Six Island)"
+  },
+  {
+    "id": 13,
+    "name": "Max Potion",
+    "type": "Cura",
+    "effect": "Restaura o HP máximo do Pokémon.",
+    "location": "Comprada em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 14,
+    "name": "Full Restore",
+    "type": "Cura",
+    "effect": "Restaura o HP máximo e cura todos os status do Pokémon.",
+    "location": "Comprada em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 15,
+    "name": "Full Heal",
+    "type": "Cura",
+    "effect": "Cura todos os problemas de status do Pokémon (Paralisia, Sono, etc.).",
+    "location": "Comprada em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 16,
+    "name": "Revive",
+    "type": "Cura",
+    "effect": "Revive um Pokémon desmaiado, restaurando metade de seu HP máximo.",
+    "location": "Comprada em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 17,
+    "name": "Max Revive",
+    "type": "Cura",
+    "effect": "Revive um Pokémon desmaiado, restaurando seu HP máximo.",
+    "location": "Vários locais (Ex: Cerulean Cave)"
+  },
+  {
+    "id": 18,
+    "name": "Potion",
+    "type": "Cura",
+    "effect": "Restaura 20 HP do Pokémon.",
+    "location": "Comprada em Marts, Vários locais"
+  },
+  {
+    "id": 19,
+    "name": "Super Potion",
+    "type": "Cura",
+    "effect": "Restaura 50 HP do Pokémon.",
+    "location": "Comprada em Marts, Vários locais"
+  },
+  {
+    "id": 20,
+    "name": "Hyper Potion",
+    "type": "Cura",
+    "effect": "Restaura 200 HP do Pokémon.",
+    "location": "Comprada em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 21,
+    "name": "Antidote",
+    "type": "Cura",
+    "effect": "Cura o status Envenenado (Poison).",
+    "location": "Comprada em Marts, Vários locais"
+  },
+  {
+    "id": 22,
+    "name": "Paralyze Heal",
+    "type": "Cura",
+    "effect": "Cura o status Paralisia (Paralysis).",
+    "location": "Comprada em Marts, Vários locais"
+  },
+  {
+    "id": 23,
+    "name": "Burn Heal",
+    "type": "Cura",
+    "effect": "Cura o status Queimadura (Burn).",
+    "location": "Comprada em Marts, Vários locais"
+  },
+  {
+    "id": 24,
+    "name": "Ice Heal",
+    "type": "Cura",
+    "effect": "Cura o status Congelado (Frozen).",
+    "location": "Comprada em Marts, Vários locais"
+  },
+  {
+    "id": 25,
+    "name": "Awakening",
+    "type": "Cura",
+    "effect": "Cura o status Dormir (Sleep).",
+    "location": "Comprada em Marts, Vários locais"
+  },
+  {
+    "id": 26,
+    "name": "Rare Candy",
+    "type": "Nutricional",
+    "effect": "Aumenta o nível de um Pokémon em 1.",
+    "location": "Vários locais (Ex: Cerulean Cave, Rota 23, Rota 13)"
+  },
+  {
+    "id": 27,
+    "name": "PP Up",
+    "type": "Nutricional",
+    "effect": "Aumenta o PP máximo de um movimento em 20%.",
+    "location": "Vários locais (Ex: Rota 17, Celadon Mansion)"
+  },
+  {
+    "id": 28,
+    "name": "PP Max",
+    "type": "Nutricional",
+    "effect": "Aumenta o PP máximo de um movimento para o total.",
+    "location": "Vários locais (Ex: Cerulean Cave)"
+  },
+  {
+    "id": 29,
+    "name": "Protein",
+    "type": "Nutricional",
+    "effect": "Aumenta o EV base de Attack (Ataque).",
+    "location": "Comprado em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 30,
+    "name": "Iron",
+    "type": "Nutricional",
+    "effect": "Aumenta o EV base de Defense (Defesa).",
+    "location": "Comprado em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 31,
+    "name": "Calcium",
+    "type": "Nutricional",
+    "effect": "Aumenta o EV base de Sp. Atk (Ataque Especial).",
+    "location": "Comprado em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 32,
+    "name": "Zinc",
+    "type": "Nutricional",
+    "effect": "Aumenta o EV base de Sp. Def (Defesa Especial).",
+    "location": "Comprado em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 33,
+    "name": "Carbos",
+    "type": "Nutricional",
+    "effect": "Aumenta o EV base de Speed (Velocidade).",
+    "location": "Comprado em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 34,
+    "name": "HP Up",
+    "type": "Nutricional",
+    "effect": "Aumenta o EV base de HP (Pontos de Vida).",
+    "location": "Comprado em Marts (Ex: Celadon City), Vários locais"
+  },
+  {
+    "id": 35,
+    "name": "Fire Stone",
+    "type": "Evolução",
+    "effect": "Evolui Vulpix, Growlithe e Eevee.",
+    "location": "Celadon Department Store (4º andar)"
+  },
+  {
+    "id": 36,
+    "name": "Water Stone",
+    "type": "Evolução",
+    "effect": "Evolui Poliwhirl, Shellder e Eevee.",
+    "location": "Celadon Department Store (4º andar)"
+  },
+  {
+    "id": 37,
+    "name": "Thunder Stone",
+    "type": "Evolução",
+    "effect": "Evolui Pikachu e Eevee.",
+    "location": "Celadon Department Store (4º andar)"
+  },
+  {
+    "id": 38,
+    "name": "Leaf Stone",
+    "type": "Evolução",
+    "effect": "Evolui Gloom, Weepinbell e Exeggcute.",
+    "location": "Celadon Department Store (4º andar)"
+  },
+  {
+    "id": 39,
+    "name": "Moon Stone",
+    "type": "Evolução",
+    "effect": "Evolui Nidorina, Nidorino, Clefairy e Jigglypuff.",
+    "location": "Mt. Moon, Celadon Mansion"
+  },
+  {
+    "id": 40,
+    "name": "Sun Stone",
+    "type": "Evolução",
+    "effect": "Evolui Sunkern e Gloom (Em FRLG, só pode ser obtida por troca com outros jogos).",
+    "location": "Pode ser obtida por troca de outros jogos."
+  },
+  {
+    "id": 41,
+    "name": "Dome Fossil",
+    "type": "Fóssil",
+    "effect": "Fóssil de um Pokémon marinho antigo. (Revive para Kabuto)",
+    "location": "Mt. Moon"
+  },
+  {
+    "id": 42,
+    "name": "Helix Fossil",
+    "type": "Fóssil",
+    "effect": "Fóssil de um Pokémon marinho antigo. (Revive para Omanyte)",
+    "location": "Mt. Moon"
+  },
+  {
+    "id": 43,
+    "name": "Old Amber",
+    "type": "Fóssil",
+    "effect": "Pedaço de âmbar com genes de um Pokémon antigo. (Revive para Aerodactyl)",
+    "location": "Pewter City (Cientista do Museu)"
+  },
+  {
+    "id": 44,
+    "name": "Dire Hit",
+    "type": "Batalha",
+    "effect": "Aumenta o índice de acerto crítico do Pokémon em batalha (Temporário).",
+    "location": "Mt. Ember, Loja (Celadon City)"
+  },
+  {
+    "id": 45,
+    "name": "Guard Spec.",
+    "type": "Batalha",
+    "effect": "Preine a redução de stats entre os Pokémons da party por cinco turnos.",
+    "location": "Victory Road, Loja (Celadon City)"
+  },
+  {
+    "id": 46,
+    "name": "X Accuracy",
+    "type": "Batalha",
+    "effect": "Aumenta o stat de Precisão (Accuracy) do Pokémon em batalha (Temporário).",
+    "location": "Pokemon Tower, Loja (Celadon City)"
+  },
+  {
+    "id": 47,
+    "name": "X Attack",
+    "type": "Batalha",
+    "effect": "Aumenta o stat de Ataque (Attack) do Pokémon em batalha (Temporário).",
+    "location": "SS Anne, Loja (Celadon City)"
+  },
+  {
+    "id": 48,
+    "name": "X Defense",
+    "type": "Batalha",
+    "effect": "Aumenta o stat de Defesa (Defense) do Pokémon em batalha (Temporário).",
+    "location": "Route 11, Loja (Celadon City)"
+  },
+  {
+    "id": 49,
+    "name": "X Special",
+    "type": "Batalha",
+    "effect": "Aumenta o stat de Ataque Especial (Sp. Atk) do Pokémon em batalha (Temporário).",
+    "location": "Silph Co, Loja (Celadon City)"
+  },
+  {
+    "id": 50,
+    "name": "X Speed",
+    "type": "Batalha",
+    "effect": "Aumenta o stat de Velocidade (Speed) do Pokémon em batalha (Temporário).",
+    "location": "Rocket Hideout, Loja (Celadon City)"
+  },
+  {
+    "id": 51,
+    "name": "Amulet Coin",
+    "type": "Segurar",
+    "effect": "Duplica o dinheiro da batalha se o Pokémon participar.",
+    "location": "Route 16 (Ajudante do Professor Oak)"
+  },
+  {
+    "id": 52,
+    "name": "Black Belt",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo LUTADOR.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 53,
+    "name": "Black Glasses",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo NOTURNO.",
+    "location": "Rocket Hideout"
+  },
+  {
+    "id": 54,
+    "name": "BrightPowder",
+    "type": "Segurar",
+    "effect": "Reduz ligeiramente a Precisão do oponente.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 55,
+    "name": "Charcoal",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo FOGO.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 56,
+    "name": "Choice Band",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de um movimento, sendo o único utilizável.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 57,
+    "name": "Cleanse Tag",
+    "type": "Segurar",
+    "effect": "Repele Pokémons selvagens se o segurador for o primeiro na party.",
+    "location": "Pokemon Tower"
+  },
+  {
+    "id": 58,
+    "name": "Deep Sea Scale",
+    "type": "Segurar",
+    "effect": "Aumenta SP. DEF de Clamperl e é necessário para evoluí-lo.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 59,
+    "name": "Deep Sea Tooth",
+    "type": "Segurar",
+    "effect": "Aumenta SP. ATK de Clamperl e é necessário para evoluí-lo.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 60,
+    "name": "Dragon Fang",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo DRAGÃO.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 61,
+    "name": "Exp. Share",
+    "type": "Segurar",
+    "effect": "O Pokémon que o segura recebe uma parcela de EXP. sem precisar batalhar.",
+    "location": "Route 15 (Ajudante do Professor Oak)"
+  },
+  {
+    "id": 62,
+    "name": "Everstone",
+    "type": "Segurar",
+    "effect": "Impede o Pokémon de evoluir.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 63,
+    "name": "Focus Band",
+    "type": "Segurar",
+    "effect": "O Pokémon pode resistir a um golpe fatal, ficando com 1 HP (chance).",
+    "location": "Vários locais"
+  },
+  {
+    "id": 64,
+    "name": "Hard Stone",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo PEDRA.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 65,
+    "name": "King's Rock",
+    "type": "Segurar",
+    "effect": "Pode causar Flinch (Recuo) ao oponente.",
+    "location": "Trainer Tower (Derrotar Mixed Mode), Seavault Canyon"
+  },
+  {
+    "id": 66,
+    "name": "Lax Incense",
+    "type": "Segurar",
+    "effect": "Reduz ligeiramente a Precisão do oponente.",
+    "location": "Lost Cave"
+  },
+  {
+    "id": 67,
+    "name": "Leftovers",
+    "type": "Segurar",
+    "effect": "Recupera gradualmente HP durante a batalha.",
+    "location": "Route 12, Route 16"
+  },
+  {
+    "id": 68,
+    "name": "Light Ball",
+    "type": "Segurar",
+    "effect": "Aumenta SP. ATK do Pikachu.",
+    "location": "Pode ser encontrado em Pikachus selvagens"
+  },
+  {
+    "id": 69,
+    "name": "Lucky Egg",
+    "type": "Segurar",
+    "effect": "O Pokémon ganha EXP. extra em batalha.",
+    "location": "Pode ser encontrado em Chanseys selvagens"
+  },
+  {
+    "id": 70,
+    "name": "Lucky Punch",
+    "type": "Segurar",
+    "effect": "Aumenta a taxa de acerto crítico da Chansey.",
+    "location": "Seavault Canyon"
+  },
+  {
+    "id": 71,
+    "name": "Macho Brace",
+    "type": "Segurar",
+    "effect": "Promove forte crescimento (EVs x2), mas reduz a Velocidade em batalha.",
+    "location": "Viridian City (Derrotar Giovanni)"
+  },
+  {
+    "id": 72,
+    "name": "Magnet",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo ELÉTRICO.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 73,
+    "name": "Mental Herb",
+    "type": "Segurar",
+    "effect": "Cura o status Paixão (Infatuation) em batalha (uso único).",
+    "location": "Vários locais"
+  },
+  {
+    "id": 74,
+    "name": "Metal Coat",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo AÇO.",
+    "location": "Memorial Pillar, Trainer Tower (Derrotar Knockout Mode)"
+  },
+  {
+    "id": 75,
+    "name": "Metal Powder",
+    "type": "Segurar",
+    "effect": "Aumenta o stat de Defesa do Ditto.",
+    "location": "Pode ser encontrado em Dittos selvagens"
+  },
+  {
+    "id": 76,
+    "name": "Miracle Seed",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo GRAMA.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 77,
+    "name": "Mystic Water",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo ÁGUA.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 78,
+    "name": "Never-Melt Ice",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo GELO.",
+    "location": "Icefall Cave"
+  },
+  {
+    "id": 79,
+    "name": "Poison Barb",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo VENENOSO.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 80,
+    "name": "Quick Claw",
+    "type": "Segurar",
+    "effect": "O Pokémon tem a chance de atacar primeiro na batalha.",
+    "location": "Safari Zone"
+  },
+  {
+    "id": 81,
+    "name": "Scope Lens",
+    "type": "Segurar",
+    "effect": "Aumenta a taxa de acerto crítico.",
+    "location": "Seafoam Islands"
+  },
+  {
+    "id": 82,
+    "name": "Sea Incense",
+    "type": "Segurar",
+    "effect": "Aumenta ligeiramente o poder de movimentos do tipo ÁGUA.",
+    "location": "Lost Cave"
+  },
+  {
+    "id": 83,
+    "name": "Sharp Beak",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo VOADOR.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 84,
+    "name": "Shell Bell",
+    "type": "Segurar",
+    "effect": "Recupera HP ao atingir o oponente.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 85,
+    "name": "Silk Scarf",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo NORMAL.",
+    "location": "Lost Cave (Após derrotar Seplhy e retornar)"
+  },
+  {
+    "id": 86,
+    "name": "SilverPowder",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo INSETO.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 87,
+    "name": "Smoke Ball",
+    "type": "Segurar",
+    "effect": "Fuga garantida de Pokémons selvagens.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 88,
+    "name": "Soft Sand",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo TERRA.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 89,
+    "name": "Soothe Bell",
+    "type": "Segurar",
+    "effect": "Aumenta a Amizade (Happiness/Friendship) do Pokémon.",
+    "location": "Pokemon Tower"
+  },
+  {
+    "id": 90,
+    "name": "Soul Dew",
+    "type": "Segurar",
+    "effect": "Aumenta SP. ATK e SP. DEF do Latios/Latias.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 91,
+    "name": "Spell Tag",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo FANTASMA.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 92,
+    "name": "Stick",
+    "type": "Segurar",
+    "effect": "Aumenta a taxa de acerto crítico do Farfetch'd.",
+    "location": "Pode ser encontrado em Farfetch'd selvagens"
+  },
+  {
+    "id": 93,
+    "name": "Thick Club",
+    "type": "Segurar",
+    "effect": "Aumenta o stat de Attack do Cubone/Marowak.",
+    "location": "Pode ser encontrado em Cubones/Marowaks selvagens"
+  },
+  {
+    "id": 94,
+    "name": "TwistedSpoon",
+    "type": "Segurar",
+    "effect": "Aumenta o poder de movimentos do tipo PSÍQUICO.",
+    "location": "Vários locais"
+  },
+  {
+    "id": 95,
+    "name": "White Herb",
+    "type": "Segurar",
+    "effect": "Restaura qualquer stat reduzido em batalha (uso único).",
+    "location": "Vários locais"
+  },
+  {
+    "id": 96,
+    "name": "Aguav Berry",
+    "type": "Berry",
+    "effect": "Restaura HP em apuros. Causa Confusão se o sabor for odiado.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 97,
+    "name": "Apicot Berry",
+    "type": "Berry",
+    "effect": "Aumenta Sp. Def em apuros.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 98,
+    "name": "Aspear Berry",
+    "type": "Berry",
+    "effect": "Cura o status Congelado (Frozen) em batalha.",
+    "location": "Route 23, Floresta Berry, Water Path"
+  },
+  {
+    "id": 99,
+    "name": "Cheri Berry",
+    "type": "Berry",
+    "effect": "Cura o status Paralisia (Paralysis) em batalha.",
+    "location": "Route 10, SS Anne, Floresta Berry, Seavault Canyon"
+  },
+  {
+    "id": 100,
+    "name": "Chesto Berry",
+    "type": "Berry",
+    "effect": "Cura o status Dormir (Sleep) em batalha.",
+    "location": "Route 9, SS Anne"
+  },
+  {
+    "id": 101,
+    "name": "Enigma Berry",
+    "type": "Berry",
+    "effect": "Restaura HP ao ser atingido por um ataque super efetivo.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 102,
+    "name": "Figy Berry",
+    "type": "Berry",
+    "effect": "Restaura HP em apuros. Causa Confusão se o sabor for odiado.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 103,
+    "name": "Ganlon Berry",
+    "type": "Berry",
+    "effect": "Aumenta Defesa em apuros.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 104,
+    "name": "Grepa Berry",
+    "type": "Berry",
+    "effect": "Aumenta Amizade e diminui EV base de Sp. Def.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 105,
+    "name": "Hondew Berry",
+    "type": "Berry",
+    "effect": "Aumenta Amizade e diminui EV base de Sp. Atk.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 106,
+    "name": "Iapapa Berry",
+    "type": "Berry",
+    "effect": "Restaura HP em apuros. Causa Confusão se o sabor for odiado.",
+    "location": "Floresta Berry"
+  },
+  {
+    "id": 107,
+    "name": "Kelpsy Berry",
+    "type": "Berry",
+    "effect": "Aumenta Amizade e diminui EV base de Attack.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 108,
+    "name": "Lansat Berry",
+    "type": "Berry",
+    "effect": "Aumenta o índice de acerto crítico em apuros.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 109,
+    "name": "Leppa Berry",
+    "type": "Berry",
+    "effect": "Restaura 10 PP de um movimento em batalha.",
+    "location": "Route 8, Route 23, Six Island"
+  },
+  {
+    "id": 110,
+    "name": "Liechi Berry",
+    "type": "Berry",
+    "effect": "Aumenta Ataque em apuros.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 111,
+    "name": "Lum Berry",
+    "type": "Berry",
+    "effect": "Cura qualquer condição de status (Confusão inclusa) em batalha.",
+    "location": "Route 8, Route 23"
+  },
+  {
+    "id": 112,
+    "name": "Mago Berry",
+    "type": "Berry",
+    "effect": "Restaura HP em apuros. Causa Confusão se o sabor for odiado.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 113,
+    "name": "Oran Berry",
+    "type": "Berry",
+    "effect": "Restaura 10 HP durante a batalha.",
+    "location": "Route 3, Route 25, Floresta Berry, Water Path"
+  },
+  {
+    "id": 114,
+    "name": "Pecha Berry",
+    "type": "Berry",
+    "effect": "Cura o status Envenenado (Poison) em batalha.",
+    "location": "Route 24, SS Anne"
+  },
+  {
+    "id": 115,
+    "name": "Persim Berry",
+    "type": "Berry",
+    "effect": "Cura o status Confuso (Confusion) em batalha.",
+    "location": "Route 4, Route 10, Floresta Berry"
+  },
+  {
+    "id": 116,
+    "name": "Petaya Berry",
+    "type": "Berry",
+    "effect": "Aumenta Sp. Atk em apuros.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 117,
+    "name": "Pomeg Berry",
+    "type": "Berry",
+    "effect": "Aumenta Amizade e diminui EV base de HP.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 118,
+    "name": "Qualot Berry",
+    "type": "Berry",
+    "effect": "Aumenta Amizade e diminui EV base de Defense.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 119,
+    "name": "Rawst Berry",
+    "type": "Berry",
+    "effect": "Cura o status Queimadura (Burn) em batalha.",
+    "location": "Route 8, Canyon Entrance"
+  },
+  {
+    "id": 120,
+    "name": "Salac Berry",
+    "type": "Berry",
+    "effect": "Aumenta Velocidade em apuros.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 121,
+    "name": "Sitrus Berry",
+    "type": "Berry",
+    "effect": "Restaura uma pequena quantidade de HP durante a batalha.",
+    "location": "Route 6, Route 23, Memorial Pillar"
+  },
+  {
+    "id": 122,
+    "name": "Starf Berry",
+    "type": "Berry",
+    "effect": "Aumenta drasticamente um stat em apuros.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 123,
+    "name": "Tamato Berry",
+    "type": "Berry",
+    "effect": "Aumenta Amizade e diminui EV base de Velocidade.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 124,
+    "name": "Wiki Berry",
+    "type": "Berry",
+    "effect": "Restaura HP em apuros. Causa Confusão se o sabor for odiado.",
+    "location": "Vários locais (crescimento de Berry Pots)"
+  },
+  {
+    "id": 125,
+    "name": "Bluk Berry",
+    "type": "Berry (Culinária)",
+    "effect": "Usada em culinária. Muito rara na região de Unova (Não tem efeito direto em FRLG).",
+    "location": "Route 25, Floresta Berry, Memorial Pillar"
+  },
+  {
+    "id": 126,
+    "name": "Razz Berry",
+    "type": "Berry (Culinária)",
+    "effect": "Usada em culinária. Muito rara na região de Unova (Não tem efeito direto em FRLG).",
+    "location": "Route 4, Memorial Pillar"
+  },
+  {
+    "id": 127,
+    "name": "Wepear Berry",
+    "type": "Berry (Culinária)",
+    "effect": "Usada em culinária. Muito rara na região de Unova (Não tem efeito direto em FRLG).",
+    "location": "Route 7, Floresta Berry"
+  },
+  {
+    "id": 128,
+    "name": "Pinap Berry",
+    "type": "Berry (Culinária)",
+    "effect": "Usada em culinária. Muito rara na região de Unova (Não tem efeito direto em FRLG).",
+    "location": "Route 14, Floresta Berry, Water Path"
+  },
+  {
+    "id": 129,
+    "name": "Nanab Berry",
+    "type": "Berry (Culinária)",
+    "effect": "Usada em culinária. Muito rara na região de Unova (Não tem efeito direto em FRLG).",
+    "location": "Route 10, Trainer Tower"
+  },
+  {
+    "id": 130,
+    "name": "Tri-Pass",
+    "type": "Diversos",
+    "effect": "Passe para viajar entre as ilhas 1, 2 e 3 do Arquipélago Sevii.",
+    "location": "Delivered by Bill"
+  },
+  {
+    "id": 131,
+    "name": "Rainbow Pass",
+    "type": "Diversos",
+    "effect": "Passe para viajar entre todas as ilhas do Arquipélago Sevii.",
+    "location": "Silph Co. (Presidente)"
+  },
+  {
+    "id": 132,
+    "name": "S.S. Ticket",
+    "type": "Diversos",
+    "effect": "Ticket para o navio S.S. Anne.",
+    "location": "Bill's House, Route 25"
+  },
+  {
+    "id": 133,
+    "name": "Lift Key",
+    "type": "Diversos",
+    "effect": "Abre o elevador na base secreta do Team Rocket em Celadon City.",
+    "location": "Rocket Hideout"
+  },
+  {
+    "id": 134,
+    "name": "Card Key",
+    "type": "Diversos",
+    "effect": "Abre as portas trancadas na Silph Co.",
+    "location": "Silph Co. (5º andar)"
+  },
+  {
+    "id": 135,
+    "name": "Gold Teeth",
+    "type": "Diversos",
+    "effect": "Dentes perdidos do Guarda da Safari Zone.",
+    "location": "Safari Zone"
+  },
+  {
+    "id": 136,
+    "name": "Itemfinder",
+    "type": "Diversos",
+    "effect": "Localiza itens escondidos próximos.",
+    "location": "Route 11"
+  },
+  {
+    "id": 137,
+    "name": "Tea",
+    "type": "Diversos",
+    "effect": "Permite acesso à cidade de Saffron (Saffron City).",
+    "location": "Celadon Mansion (Senhora mais velha)"
+  }
 ]

@@ -4,65 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokédex - Busca</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
-        <h1>⚔️ Guia de Batalha Pokémon</h1>
+<body class="d-flex justify-content-center py-4">
+    <div class="container p-4 shadow-lg">
+        <h1 class="text-center"><i class="bi bi-swords"></i> Guia de Batalha Pokémon</h1>
         
-        <div class="nav-bar">
-            <a href="index.html">🚪 Voltar à Seleção</a>
-            <a href="itens.html">💊 Guia de Itens</a>
-            <a href="tms.html">💾 Guia de TMs</a>
-            <a href="hms.html">🔗 Guia de HMs</a>
-        </div>
-
-        <p class="generations-info">
-            <strong>Guia Ativo:</strong> FireRed / LeafGreen (Geração 1)
-        </p>
-
-        <div class="search-container">
-            <div class="search-controls">
-                <input type="text" id="pokemonInput" 
-                       placeholder="Digite o Nome ou ID do Pokémon" 
-                       onkeyup="handleInput(event)" 
-                       autocomplete="off">
-                <div class="buttons-container">
-                    <button onclick="buscarPokemon()">Buscar</button>
-                    <button onclick="limparBusca()" class="clear-button">Limpar</button>
-                </div>
+        <nav class="nav-bar d-flex justify-content-around p-3 mb-4 rounded">
+            <a href="index.html" class="btn btn-custom"><i class="bi bi-house-door"></i> Voltar à Seleção</a>
+            <a href="itens.html" class="btn btn-custom"><i class="bi bi-capsule"></i> Guia de Itens</a>
+            <a href="tms.html" class="btn btn-custom"><i class="bi bi-floppy"></i> Guia de TMs</a>
+            <a href="hms.html" class="btn btn-custom"><i class="bi bi-tools"></i> Guia de HMs</a>
+        </nav>
+        
+        <div class="search-section mb-4 position-relative"> 
+            <div class="input-group">
+                <input type="text" id="pokemonSearchInput" 
+                       placeholder="Digite o nome ou ID do Pokémon (ex: Bulbasaur ou 1)" 
+                       oninput="handleInput(event)"
+                       class="form-control form-control-custom">
             </div>
-            <div id="suggestions" class="suggestions-list hidden"></div>
+            
+            <div id="suggestions" class="suggestions-dropdown hidden">
+                </div>
+            
+            <div class="d-flex gap-2 mt-2">
+                <button onclick="buscarPokemon()" class="btn btn-custom search-button flex-grow-1"><i class="bi bi-search"></i> Buscar</button>
+                <button onclick="limparBusca()" class="btn btn-custom clear-button flex-grow-1"><i class="bi bi-x-circle"></i> Limpar</button>
+            </div>
+            
         </div>
-
+        
         <div id="pokemonInfo" class="pokemon-card">
             <p>Use o campo acima para buscar um Pokémon.</p>
         </div>
 
         <div id="baseStats" class="guide-section hidden">
-            <h3>📈 Stats Base</h3>
+            <h3 class="text-secondary"><i class="bi bi-graph-up"></i> Stats Base</h3>
         </div>
-
+        
         <div id="typeGuide" class="guide-section hidden">
         </div>
 
+        <div id="evolutionChain" class="guide-section hidden">
+            <h3 class="text-secondary"><i class="bi bi-diagram-3"></i> Cadeia Evolutiva</h3>
+        </div>
+
         <div id="movesGuide" class="guide-section hidden">
-            <h3>🥋 Movimentos Aprendidos (FireRed)</h3>
+            <h3 class="text-secondary"><i class="bi bi-joystick"></i> Movimentos Aprendidos (FireRed)</h3>
         </div>
         
-        <div id="evolutionChain" class="guide-section hidden">
-            <h3>🌱 Cadeia Evolutiva</h3>
+        <div id="strategyGuide" class="guide-section hidden">
+            <h3 class="text-secondary"><i class="bi bi-geo-alt"></i> Localização (FireRed)</h3>
         </div>
 
-        <div id="strategyGuide" class="guide-section hidden">
-            <h3>🗺️ Localização (FireRed)</h3>
-        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="script.js"></script>
-    <script>
-        // Não precisamos de scripts inline extras aqui, pois as funções
-        // já são expostas no script.js.
-    </script>
 </body>
 </html>

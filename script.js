@@ -6,17 +6,22 @@ const POKEAPI_TYPE_URL = 'https://pokeapi.co/api/v2/type/';
 const POKEAPI_SPECIES_URL = 'https://pokeapi.co/api/v2/pokemon-species/';
 const FIRST_GEN_LIMIT = 151; // Limite da Geração 1 (Kanto)
 
+// CONSTANTES PARA O HISTÓRICO DE PESQUISA
+const SEARCH_HISTORY_KEY = 'pokemonSearchHistory';
+const MAX_HISTORY_SIZE = 5;
+
 let pokemonNames = [];
 let FIRERED_GUIDE_DATA = {};
 
 // ==========================================================
-// 1. CARREGAMENTO E DADOS INICIAIS (USANDO CAMINHO RELATIVO 'data/')
+// 1. CARREGAMENTO E DADOS INICIAIS
 // ==========================================================
 
 async function loadData() {
     await loadPokemonNames();
     await loadGuideData();
-    // Adiciona uma chamada para carregar o guia se a URL for específica (tms.html, hms.html, itens.html)
+    
+    // Carrega o guia específico se a URL for correspondente
     const urlPath = window.location.pathname;
     if (urlPath.includes('tms.html')) {
         carregarGuiaVersao('tms');
@@ -29,7 +34,7 @@ async function loadData() {
 
 async function loadPokemonNames() {
     try {
-        // Limitado a 251 para incluir a Geração 2, que pode ser usada em evoluções futuras
+        // Busca até a Geração 2 para incluir evoluções como Pichu/Steelix
         const response = await fetch(`${POKEAPI_URL}?limit=251`); 
         const data = await response.json();
         pokemonNames = data.results.map(p => p.name);
@@ -43,7 +48,7 @@ async function loadGuideData() {
         try {
             const response = await fetch(path); 
             if (!response.ok) {
-                throw new Error(`Falha no HTTP: Status ${response.status}`);
+                throw new Error(`Falha no HTTP: Status ${response.status} para ${path}.`);
             }
             return response.json();
         } catch (error) {
@@ -59,63 +64,93 @@ async function loadGuideData() {
             fetchData('data/itens_frlg.json')
         ]);
         
-        FIRERED_GUIDE_DATA = { tms, hms, itens };
-        console.log("Dados de TMs/HMs/Itens carregados.");
+        const formatMoveData = (item) => ({
+            ...item,
+            move_name: item.move ? item.move.replace(/-/g, ' ') : 'Desconhecido'
+        });
+
+        FIRERED_GUIDE_DATA = { 
+            tms: tms.map(formatMoveData), 
+            hms: hms.map(formatMoveData), 
+            itens 
+        };
     } catch (error) {
         FIRERED_GUIDE_DATA = { tms: [], hms: [], itens: [] };
-        console.warn("Aviso: Pelo menos um arquivo JSON de guia falhou ao carregar. Verifique os erros acima.");
+        console.warn("Aviso: Falha ao carregar dados de guia. A aplicação continuará.");
     }
 }
-loadData(); 
+document.addEventListener('DOMContentLoaded', loadData); 
 
 // ==========================================================
-// 2. FUNÇÕES DE BUSCA E UI
+// 2. FUNÇÕES DE BUSCA E UI (COM HISTÓRICO)
 // ==========================================================
 
-function handleInput(event) {
-    if (event.key === 'Enter') {
-        buscarPokemon();
-    } else {
-        mostrarSugestoes();
+function searchEvolutionPokemon(pokemonName) {
+    const inputElement = document.getElementById('pokemonSearchInput');
+    if (inputElement) {
+        const formattedName = pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1);
+        inputElement.value = formattedName;
     }
-}
-
-function mostrarSugestoes() {
-    const input = document.getElementById('pokemonInput').value.toLowerCase().trim();
+    
+    buscarPokemon();
+    
+    // Oculta sugestões após a busca
     const suggestionsDiv = document.getElementById('suggestions');
+    if (suggestionsDiv) {
+        suggestionsDiv.classList.add('hidden');
+    }
+}
+
+
+/**
+ * Gerencia as sugestões de pesquisa em tempo real e o histórico.
+ */
+function handleInput(event) {
+    const input = event.target.value.toLowerCase().trim();
+    const suggestionsDiv = document.getElementById('suggestions');
+
     if (!suggestionsDiv) return;
 
-    suggestionsDiv.innerHTML = '';
-    if (input.length < 2) {
-        suggestionsDiv.classList.add('hidden');
+    if (input.length < 2 && input.length >= 0) {
+        // Se o input está quase vazio, mostra o Histórico de Pesquisa
+        mostrarHistorico(suggestionsDiv);
         return;
     }
 
+    // Se o input tem 2 ou mais caracteres, mostra sugestões em tempo real
     const filteredNames = pokemonNames.filter(name => name.startsWith(input)).slice(0, 10);
+    mostrarSugestoes(filteredNames, suggestionsDiv);
+}
 
-    if (filteredNames.length === 0) {
-        suggestionsDiv.classList.add('hidden');
+/**
+ * Renderiza as sugestões em tempo real.
+ */
+function mostrarSugestoes(suggestions, targetDiv) {
+    targetDiv.innerHTML = '';
+    
+    if (suggestions.length === 0) {
+        targetDiv.classList.add('hidden');
         return;
     }
 
-    filteredNames.forEach(name => {
+    suggestions.forEach(name => {
         const item = document.createElement('div');
         item.className = 'suggestion-item';
         item.textContent = name.charAt(0).toUpperCase() + name.slice(1);
         item.onclick = () => {
-            document.getElementById('pokemonInput').value = name;
-            suggestionsDiv.classList.add('hidden');
+            document.getElementById('pokemonSearchInput').value = name;
+            targetDiv.classList.add('hidden');
             buscarPokemon();
         };
-        suggestionsDiv.appendChild(item);
+        targetDiv.appendChild(item);
     });
 
-    suggestionsDiv.classList.remove('hidden');
+    targetDiv.classList.remove('hidden');
 }
 
 
 function limparBusca() {
-    document.getElementById('pokemonInput').value = '';
+    document.getElementById('pokemonSearchInput').value = '';
     document.getElementById('pokemonInfo').innerHTML = '<p>Use o campo acima para buscar um Pokémon.</p>';
     
     const sections = ['typeGuide', 'strategyGuide', 'evolutionChain', 'baseStats', 'movesGuide'];
@@ -124,25 +159,67 @@ function limparBusca() {
         if (el) el.classList.add('hidden');
     });
 
+    // Mostra o histórico na limpeza
     const suggestionsDiv = document.getElementById('suggestions');
     if (suggestionsDiv) {
-        suggestionsDiv.classList.add('hidden');
-        suggestionsDiv.innerHTML = '';
+        mostrarHistorico(suggestionsDiv);
     }
 }
 
 
+function updateSearchHistory(pokemonName) {
+    let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+    
+    const lowerName = pokemonName.toLowerCase();
+    
+    // Remove duplicatas (case insensitive)
+    history = history.filter(name => name.toLowerCase() !== lowerName);
+    
+    // Adiciona o novo nome no início
+    history.unshift(pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1)); 
+    
+    // Limita o tamanho do histórico
+    history = history.slice(0, MAX_HISTORY_SIZE);
+    
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+}
+
+function mostrarHistorico(targetDiv) {
+    const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+    
+    targetDiv.innerHTML = ''; 
+
+    if (history.length === 0) {
+        targetDiv.classList.add('hidden');
+        return;
+    }
+    
+    targetDiv.innerHTML = '<div class="history-title p-2">Pesquisas Recentes:</div>';
+    
+    history.forEach(name => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item history-item';
+        item.textContent = name; 
+        item.onclick = () => {
+            document.getElementById('pokemonSearchInput').value = name;
+            targetDiv.classList.add('hidden');
+            buscarPokemon();
+        };
+        targetDiv.appendChild(item);
+    });
+    
+    targetDiv.classList.remove('hidden');
+}
+
+
 async function buscarPokemon() {
-    const query = document.getElementById('pokemonInput').value.toLowerCase().trim(); 
+    const query = document.getElementById('pokemonSearchInput').value.toLowerCase().trim(); 
     const pokemonInfoDiv = document.getElementById('pokemonInfo');
-    const typeGuideDiv = document.getElementById('typeGuide');
-    const strategyGuideDiv = document.getElementById('strategyGuide');
-    const evolutionChainDiv = document.getElementById('evolutionChain');
-    const baseStatsDiv = document.getElementById('baseStats'); 
-    const movesGuideDiv = document.getElementById('movesGuide'); 
+    const sections = ['typeGuide', 'strategyGuide', 'evolutionChain', 'baseStats', 'movesGuide'];
     
     pokemonInfoDiv.innerHTML = '<p>Buscando...</p>';
-    [typeGuideDiv, strategyGuideDiv, evolutionChainDiv, baseStatsDiv, movesGuideDiv].forEach(el => el.classList.add('hidden'));
+    sections.map(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('suggestions')?.classList.add('hidden'); 
 
     if (!query) {
         pokemonInfoDiv.innerHTML = '<p style="color: #e76f51;">Por favor, digite o nome ou ID de um Pokémon.</p>';
@@ -160,18 +237,16 @@ async function buscarPokemon() {
         const tipos = pokemonData.types.map(typeInfo => typeInfo.type.name);
 
         exibirPokemon(pokemonData, pokemonInfoDiv, tipos);
+        updateSearchHistory(pokemonData.name); 
 
         const speciesResponse = await fetch(`${POKEAPI_SPECIES_URL}${pokemonData.id}`);
         const speciesData = await speciesResponse.json();
 
-        exibirBaseStats(pokemonData.stats, baseStatsDiv); 
-        await buscarCadeiaEvolutiva(speciesData, evolutionChainDiv);
-
-        await buscarGuiaDeTiposCompleto(tipos, typeGuideDiv, pokemonData.id);
-
-        await buscarLocalizacao(pokemonData, strategyGuideDiv); 
-        exibirMovimentos(pokemonData.moves, movesGuideDiv);
-
+        exibirBaseStats(pokemonData.stats, document.getElementById('baseStats')); 
+        await buscarCadeiaEvolutiva(speciesData, document.getElementById('evolutionChain'));
+        await buscarGuiaDeTiposCompleto(tipos, document.getElementById('typeGuide'), pokemonData.id);
+        await buscarLocalizacao(pokemonData, document.getElementById('strategyGuide')); 
+        exibirMovimentos(pokemonData.moves, document.getElementById('movesGuide'));
 
     } catch (error) {
         console.error('Erro geral na requisição:', error);
@@ -179,7 +254,215 @@ async function buscarPokemon() {
     }
 }
 
-// --- Funções de Exibição de Conteúdo (Sem Alterações) ---
+
+// ==========================================================
+// 3. FUNÇÕES DE EVOLUÇÃO (CORREÇÃO DA PEDRA)
+// ==========================================================
+
+/**
+ * Retorna uma string formatada com os detalhes da condição de evolução.
+ * **CORREÇÃO APLICADA AQUI:** Garante que o nome da pedra de evolução seja formatado corretamente.
+ */
+function getEvolutionDetailsString(detail) {
+    // Substitui hífens no nome do trigger (ex: 'level-up' -> 'level up')
+    const trigger = detail.trigger.name.replace(/-/g, ' '); 
+    let details = '';
+    
+    // 1. CORREÇÃO: Prioriza e formata a evolução por ITEM (PEDRA)
+    if (trigger === 'use-item' && detail.item) {
+        let itemName = detail.item.name;
+        
+        // CORREÇÃO: Divide por hífen, capitaliza e junta com espaço
+        // Ex: 'thunder-stone' -> ['thunder', 'stone'] -> ['Thunder', 'Stone'] -> 'Thunder Stone'
+        const formattedItemName = itemName.split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+        
+        details = `Usando <strong>${formattedItemName}</strong>`;
+    } 
+    // 2. Prioriza o NÍVEL MÍNIMO (Level Up)
+    else if (detail.min_level) {
+        details = `LV <strong>${detail.min_level}</strong>`;
+    } 
+    // 3. Trata Troca
+    else if (trigger === 'trade') {
+        details = 'Troca';
+    } 
+    // 4. Trata outras condições de Level Up
+    else if (trigger === 'level-up') {
+         if (detail.min_happiness) {
+            details = `Felicidade <strong>${detail.min_happiness}+</strong>`;
+        } else if (detail.time_of_day) {
+            details = `Level Up (Horário: ${detail.time_of_day})`;
+        } else {
+            details = `Level Up (Condição)`; 
+        }
+    } 
+    // 5. Caso Padrão (Fallback, ex: 'shed' para Shedinja, ou 'use-item' sem item)
+    else {
+        // Se não foi tratada acima (como use-item) e o trigger é genérico,
+        // capitaliza e usa o nome do trigger (ex: "Use Item")
+        details = trigger.charAt(0).toUpperCase() + trigger.slice(1);
+    }
+    
+    let extraDetails = [];
+
+    // Adiciona detalhes extras à condição principal (se houver)
+    if (detail.held_item) { 
+        const heldItemName = detail.held_item.name.replace('-item', '').replace(/-/g, ' ');
+        extraDetails.push(`Segurando ${heldItemName}`);
+    }
+    if (detail.gender !== null) {
+        extraDetails.push(detail.gender === 1 ? '♀ Fêmea' : '♂ Macho');
+    }
+    if (detail.known_move) {
+         extraDetails.push(`Movimento: ${detail.known_move.name.replace('-', ' ')}`);
+    }
+
+    if (extraDetails.length > 0) {
+        if (details) {
+            details += ` + (${extraDetails.join(', ')})`;
+        } else {
+             details += `${extraDetails.join(', ')}`;
+        }
+    }
+    
+    // Se o resultado final ainda estiver vazio, usa o trigger capitalizado
+    if (!details) {
+         details = trigger.charAt(0).toUpperCase() + trigger.slice(1);
+    }
+    
+    return details.replace(/\s+/g, ' '); 
+}
+
+async function buscarCadeiaEvolutiva(speciesData, targetElement) {
+    const chainUrl = speciesData.evolution_chain?.url;
+    let html = '<h3>🌱 Cadeia Evolutiva (Kanto)</h3>'; 
+
+    if (!chainUrl) {
+        html += `<p style="color: #94a3b8;">Nenhuma cadeia evolutiva encontrada.</p>`;
+        targetElement.innerHTML = html;
+        targetElement.classList.remove('hidden');
+        return;
+    }
+
+    const chainResponse = await fetch(chainUrl);
+    const chainData = await chainResponse.json();
+    const chain = chainData.chain;
+
+    const baseId = chain.species.url.split('/').slice(-2, -1)[0];
+    if (parseInt(baseId) > FIRST_GEN_LIMIT) {
+        html += `<p style="text-align: center; margin-top: 10px; color: #94a3b8;">Pokémon não pertence à Geração 1 (Kanto).</p>`;
+        targetElement.innerHTML = html;
+        targetElement.classList.remove('hidden');
+        return;
+    }
+
+    html += await renderEvolutionChain(chain, speciesData.name);
+    targetElement.innerHTML = html;
+    targetElement.classList.remove('hidden');
+}
+
+async function renderEvolutionChain(chainData, currentSearchName) {
+    let html = '<div class="evolution-list-container d-flex flex-wrap justify-content-center align-items-center gap-4 py-3">';
+    const imageCache = {};
+
+    const getPokemonImage = async (name) => {
+        if (!imageCache[name]) {
+            try {
+                const response = await fetch(`${POKEAPI_URL}${name}`);
+                if (!response.ok) return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                const data = await response.json();
+                imageCache[name] = data.sprites.front_default;
+            } catch (error) {
+                return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            }
+        }
+        return imageCache[name];
+    };
+    
+    const processChain = async (chainNode) => {
+        const currentPokemonName = chainNode.species.name;
+        const currentPokemonId = chainNode.species.url.split('/').slice(-2, -1)[0];
+        const isCurrentSearch = currentPokemonName === currentSearchName;
+
+        if (parseInt(currentPokemonId) > FIRST_GEN_LIMIT) {
+            return; 
+        }
+
+        const currentImageUrl = await getPokemonImage(currentPokemonName);
+        
+        // 1. Renderiza o Pokémon atual
+        html += `
+            <div class="text-center evolution-step evolution-clickable" onclick="searchEvolutionPokemon('${currentPokemonName}')">
+                <img src="${currentImageUrl}" alt="${currentPokemonName}" style="width: 96px; height: 96px;" class="bg-dark rounded p-1 ${isCurrentSearch ? 'border border-primary' : ''}"/>
+                <p class="mt-1 mb-0 fw-bold text-uppercase ${isCurrentSearch ? 'text-primary' : ''}">${currentPokemonName}</p>
+            </div>
+        `;
+
+        // 2. Processa as próximas evoluções
+        if (chainNode.evolves_to.length > 0) {
+            
+            if (chainNode.evolves_to.length > 1) {
+                html += '<div class="d-flex flex-column align-items-center justify-content-center mx-2" style="min-width: 120px;">';
+                html += '<span class="fs-4 text-primary">⬇️</span><p class="text-secondary fw-bold mb-0">RAMIFICAÇÃO</p></div>';
+                
+                html += '<div class="d-flex flex-wrap justify-content-center">'; 
+                await Promise.all(chainNode.evolves_to.map(async (nextEvo) => {
+                    const nextId = parseInt(nextEvo.species.url.split('/').slice(-2, -1)[0]);
+                    if (nextId > FIRST_GEN_LIMIT) return;
+
+                    const detailsList = nextEvo.evolution_details.map(getEvolutionDetailsString);
+                    const detailsString = detailsList.join(' OU ');
+                    const nextImageUrl = await getPokemonImage(nextEvo.species.name);
+
+                    html += `
+                        <div class="d-flex flex-column align-items-center justify-content-center p-3">
+                            <div class="text-center mb-1">
+                                <p class="text-secondary fw-bold mb-0" style="font-size: 0.9em; max-width: 120px; line-height: 1.2;">${detailsString}</p>
+                            </div>
+                            <div class="text-center evolution-step evolution-clickable" onclick="searchEvolutionPokemon('${nextEvo.species.name}')">
+                                <img src="${nextImageUrl}" alt="${nextEvo.species.name}" style="width: 96px; height: 96px;" class="bg-dark rounded p-1"/>
+                                <p class="mt-1 mb-0 fw-bold text-uppercase">${nextEvo.species.name}</p>
+                            </div>
+                        </div>
+                    `;
+                }));
+                html += '</div>'; 
+
+            } else { 
+                const nextEvo = chainNode.evolves_to[0];
+                const nextId = parseInt(nextEvo.species.url.split('/').slice(-2, -1)[0]);
+
+                if (nextId <= FIRST_GEN_LIMIT) {
+                    const detailsList = nextEvo.evolution_details.map(getEvolutionDetailsString);
+                    const detailsString = detailsList.join(' OU ');
+                    
+                    // Adiciona Separador
+                    html += `
+                        <div class="d-flex flex-column align-items-center justify-content-center mx-2" style="min-width: 120px;">
+                            <div class="text-center mb-1">
+                                <p class="text-secondary fw-bold mb-0" style="font-size: 0.9em; max-width: 120px; line-height: 1.2;">${detailsString}</p>
+                                <span class="fs-4 text-primary">➡️</span>
+                            </div>
+                        </div>
+                    `;
+                    // Processa o próximo estágio recursivamente
+                    await processChain(nextEvo);
+                }
+            }
+        }
+    };
+    
+    await processChain(chainData);
+
+    html += '</div>';
+    return html;
+}
+
+// ==========================================================
+// 4. FUNÇÕES DE EXIBIÇÃO DE CONTEÚDO
+// ==========================================================
 
 function exibirPokemon(data, targetElement, tipos) {
     const nome = data.name;
@@ -189,7 +472,7 @@ function exibirPokemon(data, targetElement, tipos) {
     const isLegendary = [144, 145, 146, 150, 151].includes(id);
 
     const tipoTags = tipos.map(tipo => 
-        `<span class="type-tag type-${tipo}">${tipo}</span>`
+        `<span class="type-tag type-${tipo}">${tipo.toUpperCase()}</span>`
     ).join('');
 
     let raridade = '';
@@ -200,19 +483,19 @@ function exibirPokemon(data, targetElement, tipos) {
     }
 
     targetElement.innerHTML = `
-        <div class="pokemon-sprites">
-            <div>
+        <div class="pokemon-sprites d-flex justify-content-center gap-5 mb-3">
+            <div class="text-center">
                 <img src="${imagemUrl}" alt="${nome} normal" />
-                <p style="margin: 0;">Normal</p>
+                <p class="mt-2 mb-0">Normal</p>
             </div>
-            <div>
+            <div class="text-center">
                 <img src="${shinyUrl}" alt="${nome} shiny" />
-                <p class="shiny-label" style="margin: 0;">✨ Shiny</p>
+                <p class="shiny-label mt-2 mb-0">✨ Shiny</p>
             </div>
         </div>
-        <h2>${nome.toUpperCase()} (#${id}) ${raridade}</h2>
-        <p><strong>Tipo(s):</strong> ${tipoTags}</p>
-        <p><strong>Altura:</strong> ${data.height / 10} m | <strong>Peso:</strong> ${data.weight / 10} kg</p>
+        <h2 class="text-center">${nome.toUpperCase()} (#${id}) ${raridade}</h2>
+        <p class="text-center"><strong>Tipo(s):</strong> ${tipoTags}</p>
+        <p class="text-center"><strong>Altura:</strong> ${data.height / 10} m | <strong>Peso:</strong> ${data.weight / 10} kg</p>
     `;
 }
 
@@ -265,252 +548,31 @@ function exibirBaseStats(statsData, targetElement) {
     targetElement.classList.remove('hidden');
 }
 
-// ==========================================================
-// 3. FUNÇÕES DE EVOLUÇÃO (CORRIGIDAS)
-// ==========================================================
-
-function getEvolutionDetailsString(detail) {
-    const trigger = detail.trigger.name.replace(/-/g, ' ');
-    let details = trigger.charAt(0).toUpperCase() + trigger.slice(1);
-
-    // 1. Prioridade: Se houver NÍVEL MÍNIMO, é o que deve ser exibido.
-    if (detail.min_level) {
-        // Envolve o nível em <strong> para destacar e facilitar a leitura.
-        details = `LV <strong>${detail.min_level}</strong>`;
-    } 
-    // 2. Se o gatilho é Level-Up mas não tem nível (geralmente Felicidade/Stats)
-    else if (trigger === 'level-up') {
-         if (detail.min_happiness) {
-            details = `Felicidade <strong>${detail.min_happiness}+</strong>`;
-        } else if (detail.time_of_day) {
-            details = `Level Up (Horário: ${detail.time_of_day})`;
-        } else {
-            // Level Up genérico (para evoluções como Feebas que requerem Beauty, ou outras condições)
-            details = `Level Up (Condição)`; 
-        }
-    } 
-    // 3. Outros Gatilhos (Trade, Use-Item)
-    else if (trigger === 'trade') {
-        details = 'Troca';
-    } else if (trigger === 'use-item' && detail.item) {
-        details = `Usando ${detail.item.name.replace(/-/g, ' ')}`;
-    }
-    
-    // --- Adiciona detalhes extras (Item, Gênero, Movimento) ---
-    let extraDetails = [];
-
-    // Held Item em Trade ou Level Up
-    if (detail.held_item) { 
-        extraDetails.push(`Segurando ${detail.held_item.name.replace('-', ' ')}`);
-    }
-
-    if (detail.gender !== null) {
-        extraDetails.push(detail.gender === 1 ? '♀ Fêmea' : '♂ Macho');
-    }
-    if (detail.known_move) {
-         extraDetails.push(`Movimento: ${detail.known_move.name.replace('-', ' ')}`);
-    }
-
-    // Se houver detalhes extras, adiciona-os ao final
-    if (extraDetails.length > 0) {
-        // Verifica se 'details' já é "LV <strong>XX</strong>"
-        if (details.includes('<strong>') || details.includes('Troca')) {
-            details += ` + (${extraDetails.join(', ')})`;
-        } else {
-             // Caso não seja nível (Ex: Troca), envolve os detalhes em parênteses.
-             details += ` (${extraDetails.join(', ')})`;
-        }
-    }
-    
-    return details.replace(/\s+/g, ' '); // Remove espaços extras
-}
-
-async function buscarCadeiaEvolutiva(speciesData, targetElement) {
-    const chainUrl = speciesData.evolution_chain.url;
-    const chainResponse = await fetch(chainUrl);
-    const chainData = await chainResponse.json();
-
-    const chain = chainData.chain;
-    
-    let html = '<h3>🧬 Cadeia Evolutiva (Apenas Kanto)</h3>';
-    
-    // Apenas renderiza se o Pokémon base estiver na Geração 1
-    const currentId = parseInt(chain.species.url.split('/').slice(-2, -1)[0]);
-    
-    if (currentId > FIRST_GEN_LIMIT) {
-         html += `<p style="text-align: center; margin-top: 10px; color: #94a3b8;">Pokémon não pertence à Geração 1 (Kanto).</p>`;
-         targetElement.innerHTML = html;
-         targetElement.classList.remove('hidden');
-         return;
-    }
-
-    html += await renderEvolutionChain(chain, speciesData.name);
-    
-    targetElement.innerHTML = html;
-    targetElement.classList.remove('hidden');
-}
-
-
-async function renderEvolutionChain(chainData, currentSearchName) {
-    let html = '<div class="evolution-list-container" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 10px;">';
-    
-    let currentChain = chainData;
-    const imageCache = {};
-    
-    const getPokemonImage = async (name) => {
-        if (!imageCache[name]) {
-            const response = await fetch(`${POKEAPI_URL}${name}`);
-            if (!response.ok) return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
-            const data = await response.json();
-            imageCache[name] = data.sprites.front_default;
-        }
-        return imageCache[name];
-    };
-    
-    // Loop para percorrer a cadeia
-    while (currentChain) {
-        const currentPokemonName = currentChain.species.name;
-        const currentPokemonId = currentChain.species.url.split('/').slice(-2, -1)[0];
-        
-        // Verifica se está na Geração 1
-        if (parseInt(currentPokemonId) > FIRST_GEN_LIMIT) {
-            currentChain = null; // Encerra o loop se sair da Geração 1
-            break;
-        }
-
-        // 1. Adicionar DETALHES do estágio ANTERIOR (se não for o estágio base)
-        if (currentChain.evolution_details && currentChain.evolution_details.length > 0) {
-            
-            // Mapeia todos os detalhes possíveis para esta evolução (pode haver mais de um, por exemplo, nível ou pedra)
-            const detailsList = currentChain.evolution_details.map(getEvolutionDetailsString);
-            const detailsString = detailsList.join(' OU ');
-
-            html += `
-                <div class="evolution-details-text" style="text-align: center; margin: 0 15px; display: flex; flex-direction: column; justify-content: center; align-self: center;">
-                    <p style="color: #94a3b8; font-size: 0.9em; margin: 0; font-weight: bold;">${detailsString}</p>
-                    <span style="font-size: 1.5em; color: #8b5cf6;">▶</span>
-                </div>
-            `;
-        }
-
-        // 2. RENDERIZA O POKÉMON ATUAL
-        const imageUrl = await getPokemonImage(currentPokemonName);
-        html += `
-            <div class="evolution-step" style="display: flex; flex-direction: column; align-items: center; margin: 10px 20px;">
-                <img src="${imageUrl}" alt="${currentPokemonName}" style="width: 96px; height: 96px; ${currentPokemonName === currentSearchName ? 'border: 2px solid #8b5cf6;' : ''}" />
-                <p style="margin: 5px 0;"><strong>${currentPokemonName.toUpperCase()}</strong></p>
-            </div>
-        `;
-        
-        
-        // 3. Lógica para a próxima etapa (Ponto Crítico)
-        if (currentChain.evolves_to.length === 1) {
-            // Cadeia Linear - Avança para o próximo
-            currentChain = currentChain.evolves_to[0];
-        } else if (currentChain.evolves_to.length > 1) {
-            // Cadeia Ramificada (Ex: Eevee)
-            
-            html += `<div class="ramification-details" style="text-align: center; margin: 0 15px; display: flex; flex-direction: column; justify-content: center; align-self: center; width: 100%;">
-                 <p style="color: #94a3b8; font-size: 0.9em; margin: 10px 0; font-weight: bold;">EVOLUÇÕES RAMIFICADAS (VEJA ABAIXO)</p>
-            </div>`;
-
-            html += `<div class="ramification-row" style="display: flex; flex-wrap: wrap; justify-content: center; width: 100%; border-top: 1px dashed #e2e8f0; padding-top: 10px;">`;
-            
-            for (const nextEvo of currentChain.evolves_to) {
-                   const nextId = parseInt(nextEvo.species.url.split('/').slice(-2, -1)[0]);
-                   if (nextId > FIRST_GEN_LIMIT) continue; // Pula se estiver fora de Kanto
-                   
-                   const detailsList = nextEvo.evolution_details.map(getEvolutionDetailsString);
-                   const detailsString = detailsList.join(' OU ');
-                   const nextImageUrl = await getPokemonImage(nextEvo.species.name);
-
-                   html += `
-                       <div style="display: flex; flex-direction: column; align-items: center; margin: 10px 20px;">
-                           <div style="text-align: center; margin-bottom: 5px; min-height: 50px;">
-                               <p style="color: #94a3b8; font-size: 0.9em; font-weight: bold; max-width: 120px; line-height: 1.2;">${detailsString}</p>
-                               <span style="font-size: 1.5em; color: #8b5cf6;">⬇️</span>
-                           </div>
-                           <div class="evolution-step">
-                               <img src="${nextImageUrl}" alt="${nextEvo.species.name}" style="width: 96px; height: 96px;" />
-                               <p style="margin: 3px 0; font-size: 1em;"><strong>${nextEvo.species.name.toUpperCase()}</strong></p>
-                           </div>
-                       </div>
-                   `;
-            }
-            html += `</div>`; 
-
-            currentChain = null; // Termina o loop após ramificação
-            
-        } else {
-             currentChain = null; // Fim da cadeia
-        }
-    }
-
-    
-    html += '</div>';
-    return html;
-}
-
-
-// ==========================================================
-// 4. GUIAS (Tabela de Vantagens/Desvantagens, Localização, Movimentos) - Sem Alterações
-// ==========================================================
 
 async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
-    if (tipos.length === 0) return;
-
-    const DAMAGE_MULTIPLIERS = {
-        'double_damage_from': 2,
-        'half_damage_from': 0.5,
-        'no_damage_from': 0
-    };
-
-    let defenseRelations = {
-        '4x': { title: 'Dano Quádruplo', types: [] },
-        '2x': { title: 'Dano Dobrado (Fraqueza)', types: [] },
-        '0.5x': { title: 'Dano Reduzido (Resistência)', types: [] },
-        '0.25x': { title: 'Dano Mínimo', types: [] },
-        '0x': { title: 'Imunidade', types: [] }
-    };
+    const defenseRelations = { '4x': { types: [] }, '2x': { types: [] }, '0.5x': { types: [] }, '0.25x': { types: [] }, '0x': { types: [] } };
+    const attackRelations = { '2x': { types: [] }, '0.5x': { types: [] }, '0x': { types: [] } };
     
-    let attackRelations = {
-        '2x': { title: 'Super Efetivo', types: [] },
-        '0.5x': { title: 'Não Muito Efetivo', types: [] },
-        '0x': { title: 'Sem Efeito (Imune)', types: [] }
-    };
+    // 1. Defesa (Resistências e Fraquezas)
+    const typePromises = tipos.map(tipo => fetch(`${POKEAPI_TYPE_URL}${tipo}`).then(res => res.json()));
+    const typeDataArray = await Promise.all(typePromises);
 
+    const typeEfficacies = {}; 
+    typeDataArray.forEach(typeData => {
+        typeData.damage_relations.double_damage_from.forEach(typeInfo => {
+            typeEfficacies[typeInfo.name] = (typeEfficacies[typeInfo.name] || 1) * 2;
+        });
+        typeData.damage_relations.half_damage_from.forEach(typeInfo => {
+            typeEfficacies[typeInfo.name] = (typeEfficacies[typeInfo.name] || 1) * 0.5;
+        });
+        typeData.damage_relations.no_damage_from.forEach(typeInfo => {
+            typeEfficacies[typeInfo.name] = 0;
+        });
+    });
 
-    let tempDefenseRelations = { 'double_damage_from': {}, 'half_damage_from': {}, 'no_damage_from': {} };
-
-    for (const tipo of tipos) {
-        const response = await fetch(`${POKEAPI_TYPE_URL}${tipo}`);
-        const data = await response.json();
-        
-        for (const relation in DAMAGE_MULTIPLIERS) {
-            data.damage_relations[relation].forEach(damageType => {
-                const typeName = damageType.name;
-                tempDefenseRelations[relation][typeName] = (tempDefenseRelations[relation][typeName] || 0) + 1;
-            });
-        }
-    }
-
-    const finalDefenseRelations = {}; 
-    for (const typeName in tempDefenseRelations.double_damage_from) {
-        finalDefenseRelations[typeName] = (finalDefenseRelations[typeName] || 1) * 2;
-    }
-    for (const typeName in tempDefenseRelations.half_damage_from) {
-        finalDefenseRelations[typeName] = (finalDefenseRelations[typeName] || 1) * 0.5;
-    }
-    for (const typeName in tempDefenseRelations.no_damage_from) {
-        finalDefenseRelations[typeName] = 0; 
-    }
-
-    const allTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'steel', 'dark', 'fairy'];
-    
-    for (const typeName of allTypes) {
-        const factor = finalDefenseRelations[typeName] || 1; 
+    for (const typeName in typeEfficacies) {
+        const factor = typeEfficacies[typeName];
         const tag = `<span class="type-tag type-${typeName}">${typeName.toUpperCase()}</span>`;
-        
         if (factor === 4) defenseRelations['4x'].types.push(tag);
         else if (factor === 2) defenseRelations['2x'].types.push(tag);
         else if (factor === 0.5) defenseRelations['0.5x'].types.push(tag);
@@ -518,6 +580,7 @@ async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
         else if (factor === 0) defenseRelations['0x'].types.push(tag);
     }
     
+    // 2. Ataque (Eficácia dos movimentos)
     for (const tipo of tipos) {
         const response = await fetch(`${POKEAPI_TYPE_URL}${tipo}`);
         const data = await response.json();
@@ -525,11 +588,9 @@ async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
         data.damage_relations.double_damage_to.forEach(typeInfo => {
             attackRelations['2x'].types.push(typeInfo.name);
         });
-        
         data.damage_relations.half_damage_to.forEach(typeInfo => {
             attackRelations['0.5x'].types.push(typeInfo.name);
         });
-
         data.damage_relations.no_damage_to.forEach(typeInfo => {
             attackRelations['0x'].types.push(typeInfo.name);
         });
@@ -541,90 +602,91 @@ async function buscarGuiaDeTiposCompleto(tipos, targetElement, pokemonId) {
         uniqueAttackRelations[key] = uniqueTypes.map(name => `<span class="type-tag type-${name}">${name.toUpperCase()}</span>`);
     }
 
-
     let html = '<h3>⚔️ Tabela de Vantagens e Desvantagens</h3>';
     html += '<p style="font-style: italic; color: #94a3b8;">* A eficácia é calculada com base no(s) tipo(s) do Pokémon pesquisado.</p>';
+    
+    html += `<div class="row">`;
+    
+    // Coluna de Defesa
+    html += `
+        <div class="col-12 col-md-6 mb-4">
+            <div class="pokemon-card">
+                <h4>🛡️ Defesa (Dano Recebido)</h4>
+                
+                <p><strong>4x Fraqueza:</strong> ${defenseRelations['4x'].types.join(' ') || '—'}</p>
+                <p><strong>2x Fraqueza:</strong> ${defenseRelations['2x'].types.join(' ') || '—'}</p>
+                <hr style="color: #94a3b8;">
+                <p><strong>0.5x Resistência:</strong> ${defenseRelations['0.5x'].types.join(' ') || '—'}</p>
+                <p><strong>0.25x Super Resistência:</strong> ${defenseRelations['0.25x'].types.join(' ') || '—'}</p>
+                <p><strong>0x Imunidade:</strong> ${defenseRelations['0x'].types.join(' ') || '—'}</p>
+            </div>
+        </div>
+    `;
 
-    html += '<div style="background: #0f172a; padding: 15px; border-radius: 8px; margin-top: 20px;">';
-    html += '<h4>⬇️ DANO RECEBIDO (DEFESA)</h4>';
-    html += '<p>O multiplicador de dano que <strong>este Pokémon sofre</strong>.</p>';
-
-    for (const key in defenseRelations) {
-        const group = defenseRelations[key];
-        
-        if (group.types.length > 0) {
-            let color;
-            if (key === '4x' || key === '2x') color = '#F44336'; 
-            else if (key === '0x') color = '#4CAF50'; 
-            else color = '#2196F3'; 
-            
-            html += `
-                <h5 style="color: ${color}; margin-top: 10px; margin-bottom: 5px; border-bottom: 1px dotted #334155; padding-bottom: 5px;">
-                    ${group.title} (${key})
-                </h5>
-                <div>${group.types.join(' ')}</div>
-            `;
-        }
-    }
-    html += '</div>'; 
-
-    html += '<div style="background: #0f172a; padding: 15px; border-radius: 8px; margin-top: 20px;">';
-    html += '<h4>⬆️ DANO CAUSADO (ATAQUE)</h4>';
-    html += '<p>O dano que <strong>este Pokémon causa</strong> (com movimentos do seu próprio tipo).</p>';
-
-    for (const key in uniqueAttackRelations) {
-        const group = uniqueAttackRelations[key];
-        
-        if (group.length > 0) {
-            let color;
-            if (key === '2x') color = '#4CAF50'; 
-            else if (key === '0x') color = '#F44336'; 
-            else color = '#FFEB3B'; 
-            
-            const title = key === '2x' ? 'Super Efetivo' : (key === '0.5x' ? 'Não Muito Efetivo' : 'Sem Efeito (Imune)');
-
-            html += `
-                <h5 style="color: ${color}; margin-top: 10px; margin-bottom: 5px; border-bottom: 1px dotted #334155; padding-bottom: 5px;">
-                    ${title} (${key})
-                </h5>
-                <div>${group.join(' ')}</div>
-            `;
-        }
-    }
-    html += '</div>'; 
+    // Coluna de Ataque (Eficácia)
+    html += `
+        <div class="col-12 col-md-6 mb-4">
+            <div class="pokemon-card">
+                <h4>💥 Ataque (Eficácia do Tipo)</h4>
+                
+                <p><strong>2x Super-Efetivo:</strong> ${uniqueAttackRelations['2x'].join(' ') || '—'}</p>
+                <p><strong>0.5x Não-Efetivo:</strong> ${uniqueAttackRelations['0.5x'].join(' ') || '—'}</p>
+                <p><strong>0x Sem Efeito:</strong> ${uniqueAttackRelations['0x'].join(' ') || '—'}</p>
+                <p style="font-style: italic; color: #94a3b8; margin-top: 15px;">* Estes são os tipos dos movimentos que o Pokémon tem STAB.</p>
+            </div>
+        </div>
+    `;
+    
+    html += `</div>`; 
     
     targetElement.innerHTML = html;
     targetElement.classList.remove('hidden');
 }
 
 
+const FIRERED_NAME = 'firered';
+
 async function buscarLocalizacao(pokemonData, targetElement) {
-    const locationResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonData.id}/encounters`);
+    const locationUrl = pokemonData.location_area_encounters;
+    let html = '<h3>🗺️ Localização (FireRed)</h3>';
+    
+    if (!locationUrl) {
+        html += `<p style="color: #94a3b8;">Localização de encontro não disponível na API.</p>`;
+        targetElement.innerHTML = html;
+        targetElement.classList.remove('hidden');
+        return;
+    }
+
+    const locationResponse = await fetch(locationUrl);
+    if (!locationResponse.ok) {
+        html += `<p style="color: #94a3b8;">Falha ao buscar dados de localização.</p>`;
+        targetElement.innerHTML = html;
+        targetElement.classList.remove('hidden');
+        return;
+    }
+    
     const locationData = await locationResponse.json();
-
-    const FIRERED_NAME = 'firered';
-
-    let html = '<h4>Encontros em Kanto (FireRed):</h4>';
     let locationsFound = false;
 
-    for (const location of locationData) {
-        for (const area of location.version_details) {
-            if (area.version.name === FIRERED_NAME) {
-                const locationName = location.location_area.name.replace(/-/g, ' ').toUpperCase();
-                
-                area.encounter_details.forEach(detail => {
-                    const method = detail.method.name.replace(/-/g, ' ');
-                    const minLevel = detail.min_level;
-                    const maxLevel = detail.max_level;
-
-                    html += `
-                        <div class="item-card" style="padding: 10px; margin-bottom: 8px;">
-                            <strong>📍 ${locationName}</strong>
-                            <p style="margin: 0;">Método: ${method.charAt(0).toUpperCase() + method.slice(1)} | Nível: ${minLevel}-${maxLevel}</p>
-                        </div>
-                    `;
-                    locationsFound = true;
-                });
+    if (locationData.length > 0) {
+        for (const location of locationData) {
+            for (const area of location.version_details) {
+                if (area.version.name === FIRERED_NAME) {
+                    const locationName = location.location_area.name.replace(/-/g, ' ').toUpperCase();
+                    area.encounter_details.forEach(detail => {
+                        const method = detail.method.name.replace(/-/g, ' ');
+                        const minLevel = detail.min_level;
+                        const maxLevel = detail.max_level;
+                        
+                        html += `
+                            <div class="pokemon-card p-3 mb-2">
+                                <strong>📍 ${locationName}</strong>
+                                <p class="mb-0 text-secondary">Método: ${method.charAt(0).toUpperCase() + method.slice(1)} | Nível: ${minLevel}-${maxLevel}</p>
+                            </div>
+                        `;
+                        locationsFound = true;
+                    });
+                }
             }
         }
     }
@@ -632,11 +694,9 @@ async function buscarLocalizacao(pokemonData, targetElement) {
     if (!locationsFound) {
         html += `<p style="color: #94a3b8;">Nenhuma localização de encontro direta encontrada na API para FireRed (Pode ser por evento, troca ou evolução).</p>`;
     }
-
     targetElement.innerHTML = html;
     targetElement.classList.remove('hidden');
 }
-
 
 function exibirMovimentos(movesData, targetElement) {
     const movesByLevel = [];
@@ -649,140 +709,174 @@ function exibirMovimentos(movesData, targetElement) {
         );
 
         if (fireRedDetails) {
-            const learnMethod = fireRedDetails.move_learn_method.name;
             const moveName = moveEntry.move.name.replace(/-/g, ' ').toUpperCase();
-            
+            const learnMethod = fireRedDetails.move_learn_method.name;
+            const levelLearned = fireRedDetails.level_learned_at;
+
             if (learnMethod === 'level-up') {
-                movesByLevel.push({
-                    name: moveName,
-                    level: fireRedDetails.level_learned_at
-                });
+                movesByLevel.push({ name: moveName, level: levelLearned });
             } else if (learnMethod === 'machine') {
-                movesByMachine.push({
-                    name: moveName,
-                });
+                movesByMachine.push({ name: moveName });
             }
         }
     });
 
     movesByLevel.sort((a, b) => a.level - b.level);
-    
-    let htmlContent = '';
 
-    htmlContent += `<h4>⬆️ Aprende por Level Up:</h4>`;
+    let html = '<h3>🥋 Movimentos Aprendidos (FireRed)</h3>';
+    
+    // Movimentos por Nível
+    html += `<div class="pokemon-card mb-4">
+                <h4>Por Level Up</h4>
+                <div class="list-group">`; 
+
     if (movesByLevel.length > 0) {
-        htmlContent += `
-            <ul style="list-style-type: none; padding-left: 0;">
-                ${movesByLevel.map(move => 
-                    `<li style="margin-bottom: 5px;"><strong>Nível ${move.level}:</strong> ${move.name}</li>`
-                ).join('')}
-            </ul>
-        `;
+        movesByLevel.forEach(move => {
+            html += `<p class="mb-0 text-start border-bottom py-2"><strong>LV <strong>${move.level}</strong>:</strong> ${move.name}</p>`;
+        });
     } else {
-        htmlContent += `<p>Não aprende movimentos por nível em FireRed/LeafGreen.</p>`;
+        html += `<p class="mb-0 text-secondary py-2">Nenhum movimento aprendido por Level Up nesta versão.</p>`;
     }
+    html += `</div></div>`;
 
-    const uniqueMachineMoves = [...new Set(movesByMachine.map(m => m.name))].sort();
-    
-    htmlContent += `<h4>💾 Aprende por Máquina (TM/HM):</h4>`;
-    if (uniqueMachineMoves.length > 0) {
-        htmlContent += `
-            <div style="column-count: 2; text-align: left; font-size: 0.9em; margin-top: 10px;">
-                ${uniqueMachineMoves.map(name => `<span>• <strong>${name}</strong></span>`).join('<br>')}
-            </div>
-        `;
+    // Movimentos por Máquina (TM/HM)
+    html += `<div class="pokemon-card">
+                <h4>Por Máquina (TM/HM)</h4>
+                <div class="machine-moves-grid">`; 
+
+    if (movesByMachine.length > 0) {
+        movesByMachine.forEach(move => {
+            html += `<div class="machine-move-item">${move.name}</div>`;
+        });
     } else {
-        htmlContent += `<p>Não pode aprender movimentos via TM/HM.</p>`;
+        html += `<p class="mb-0 text-secondary py-2" style="grid-column: 1 / -1; text-align: center;">Nenhum movimento aprendido por Máquina nesta versão (ou não registrado na API).</p>`;
     }
+    html += `</div></div>`;
 
-    targetElement.innerHTML = htmlContent;
+    targetElement.innerHTML = html;
     targetElement.classList.remove('hidden');
 }
 
 
+// ==========================================================
+// 5. FUNÇÕES DE GUIA (Itens, TMs, HMs)
+// ==========================================================
+
 function carregarGuiaVersao(type) {
-    if (FIRERED_GUIDE_DATA[type] === undefined) {
-        document.getElementById('versionGuideContent').innerHTML = '<p style="color: #e76f51;">Erro: Dados não carregados. Verifique o console para a falha do JSON.</p>';
+    const guideData = FIRERED_GUIDE_DATA[type] || [];
+    filterGuide(type, true); // Passa 'true' para indicar que é a carga inicial
+}
+
+
+function filterGuide(type, isInitialLoad = false) {
+    const inputId = `${type}SearchInput`;
+    const targetId = 'versionGuideContent';
+    const inputElement = document.getElementById(inputId);
+    const targetElement = document.getElementById(targetId);
+    
+    const dataList = FIRERED_GUIDE_DATA[type] || [];
+    
+    let title = '';
+    if (type === 'tms') title = 'TMs Encontrados';
+    else if (type === 'hms') title = 'HMs Encontrados';
+    else if (type === 'itens') title = 'Itens Encontrados';
+
+    if (!inputElement && isInitialLoad) {
+        renderGuideContent(dataList, title, type, targetElement, '');
         return;
     }
     
-    filterGuide(type);
-}
-
-function filterGuide(type) {
-    const targetElement = document.getElementById('versionGuideContent');
-    const searchInput = document.getElementById(`${type}SearchInput`);
-    
-    const filterText = searchInput ? searchInput.value.toLowerCase() : ''; 
-
-    const dataList = FIRERED_GUIDE_DATA[type] || [];
-    let title = '';
-
-    if (type === 'tms') title = 'TMs (Technical Machines)';
-    else if (type === 'hms') title = 'HMs (Hidden Machines)';
-    else if (type === 'itens') title = 'Itens Chave e Consumíveis';
+    const filterText = inputElement ? inputElement.value.toLowerCase().trim() : '';
 
     const filteredList = dataList.filter(item => {
         const itemString = JSON.stringify(item).toLowerCase(); 
         return itemString.includes(filterText);
     });
 
-    let html = `<h3>${title}</h3><div class="card-grid">`; 
+    renderGuideContent(filteredList, title, type, targetElement, filterText);
+}
 
-    if (filteredList.length > 0) {
-        filteredList.forEach(item => {
-            
-            let typeClass = '';
-            
-            if (type === 'tms' || type === 'hms') {
-                typeClass = `type-${item.type ? item.type.toLowerCase() : 'normal'}`; 
-            }
+function renderGuideContent(dataList, title, type, targetElement, filterText) {
+    let html = `<h3>${title}</h3>`; 
 
-            html += `<div class="guide-card">`; 
+    if (dataList.length === 0) {
+        html += `<p style="color: #94a3b8; width: 100%; text-align: center;">Nenhum ${title} encontrado com o filtro "${filterText}".</p>`;
+    
+    } else if (type === 'tms' || type === 'hms') {
+        html += `<div class="card-grid">`;
+        dataList.forEach(item => {
+            let typeClass = `type-${item.type ? item.type.toLowerCase() : 'normal'}`;
             
-           if (type === 'tms' || type === 'hms') {
-             const code = item.code ? item.code.toUpperCase() : (type === 'tms' ? 'TM' : 'HM');
-             const moveName = item.move ? item.move.replace(/-/g, ' ').toUpperCase() : '—';
-             
-             html += `<h4 class="card-title">${code} - ${moveName}</h4>`;
-             
-             html += `<p class="card-move"><strong>Movimento:</strong> <span style="color: #8b5cf6;">${moveName}</span></p>`;
-             
-             if (type === 'tms') {
-                 html += `<p><strong>Tipo:</strong> <span class="type-tag type-${item.type?.toLowerCase() || 'normal'}">${item.type?.toUpperCase() || 'NORMAL'}</span> | <strong>Poder:</strong> ${item.power || 'Status'}</p>`;
-             }
-
-             html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
-         }
-         else { 
-               html += `<h4 class="card-title">${item.name.toUpperCase()}</h4>`;
-               html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
-            }
-            
+            html += `<div class="guide-card">`;
+            html += `<h4 class="card-title">
+                        <span class="badge ${typeClass} p-2 me-2 text-uppercase">
+                            ${item.name.toUpperCase()}
+                        </span> 
+                        ${item.move_name.toUpperCase()}
+                    </h4>`;
+            html += `<p class="card-power"><strong>Tipo:</strong> <span class="type-tag ${typeClass}">${item.type ? item.type.toUpperCase() : 'NORMAL'}</span> | `;
+            html += `<strong>Poder:</strong> ${item.power || '—'} | <strong>Precisão:</strong> ${item.accuracy || '—'} | <strong>PP:</strong> ${item.pp || '—'}</p>`;
             html += `<p class="card-location"><strong>Localização:</strong> ${item.location}</p>`;
             html += `</div>`;
         });
-    } else {
-        html += `<p style="color: #94a3b8; width: 100%; text-align: center;">Nenhum ${title} encontrado com o filtro "${filterText}".</p>`;
+        html += `</div>`;
+    } else if (type === 'itens') {
+        if (filterText) {
+            html += `<div class="card-grid">`;
+            dataList.forEach(item => {
+                html += `<div class="guide-card">`;
+                html += `<span class="item-type-tag">${item.type ? item.type.toUpperCase() : 'DIVERSOS'}</span>`; 
+                html += `<h4 class="card-title">${item.name.toUpperCase()}</h4>`;
+                html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
+                html += `<p class="card-location"><strong>Localização:</strong> ${item.location}</p>`;
+                html += `</div>`;
+            });
+            html += `</div>`;
+        } else {
+            const groupedItems = dataList.reduce((acc, item) => {
+                const itemType = item.type || 'Diversos';
+                if (!acc[itemType]) {
+                    acc[itemType] = [];
+                }
+                acc[itemType].push(item);
+                return acc;
+            }, {});
+
+            const typesOrder = ["Pokébola", "Cura", "Nutricional", "Evolução", "Batalha", "Segurar", "Berry", "Diversos", "Key Item"];
+            
+            const sortedTypes = Object.keys(groupedItems).sort((a, b) => {
+                const indexA = typesOrder.indexOf(a);
+                const indexB = typesOrder.indexOf(b);
+                
+                if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+                if (indexA === -1) return 1; 
+                if (indexB === -1) return -1;
+                
+                return indexA - indexB;
+            });
+            
+            sortedTypes.forEach(itemType => {
+                html += `<div class="item-section my-4">`;
+                html += `<h2 class="section-title mb-3 p-2 rounded"><i class="bi bi-tag-fill"></i> ${itemType.toUpperCase()}</h2>`; 
+                html += `<div class="card-grid">`;
+                
+                groupedItems[itemType].forEach(item => {
+                    html += `<div class="guide-card">`;
+                    html += `<h4 class="card-title">${item.name.toUpperCase()}</h4>`;
+                    html += `<p class="card-effect"><strong>Efeito:</strong> ${item.effect}</p>`;
+                    html += `<p class="card-location"><strong>Localização:</strong> ${item.location}</p>`;
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+                html += `</div>`;
+            });
+        }
     }
 
-    html += `</div>`; 
-    
     targetElement.innerHTML = html;
 }
 
-// ==========================================================
-// 5. EXPOSIÇÃO GLOBAL (Sem Alterações)
-// ==========================================================
-
-window.buscarPokemon = buscarPokemon;
-window.limparBusca = limparBusca; 
-window.handleInput = handleInput; 
-window.mostrarSugestoes = mostrarSugestoes;
-window.carregarGuiaVersao = carregarGuiaVersao;
-window.filterGuide = filterGuide;
-
-// Função para a tela inicial (se aplicável no seu projeto)
 function iniciarGuia() {
     const selectedVersion = document.getElementById('gameVersionSelect').value;
     if (selectedVersion === 'firered') {
@@ -792,4 +886,16 @@ function iniciarGuia() {
         alert("Esta versão está em desenvolvimento.");
     }
 }
+
+
+// ==========================================================
+// 6. EXPOSIÇÃO GLOBAL
+// ==========================================================
+
+window.buscarPokemon = buscarPokemon;
+window.limparBusca = limparBusca;
+window.handleInput = handleInput;
+window.carregarGuiaVersao = carregarGuiaVersao;
+window.filterGuide = filterGuide;
+window.searchEvolutionPokemon = searchEvolutionPokemon;
 window.iniciarGuia = iniciarGuia;
